@@ -14,15 +14,15 @@ from app.schemas.auth import UserResponse
 router = APIRouter(prefix="/clubs", tags=["Clubs"])
 
 # Hàm helper tìm CLB theo UUID (id) hoặc mã định danh (code)
-def get_club_by_identifier(club_identifier: str, db: Session) -> Club:
+def get_club_by_identifier(club_id: str, db: Session) -> Club:
 	club = db.query(Club).filter(
-		or_(Club.id == club_identifier, Club.code == club_identifier, Club.name == club_identifier)
+		or_(Club.id == club_id, Club.code == club_id, Club.name == club_id)
 	).first()
 
 	if not club:
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail=f"Không tìm thấy Câu lạc bộ với ID hoặc mã: '{club_identifier}'."
+			detail=f"Không tìm thấy Câu lạc bộ với ID hoặc mã: '{club_id}'."
 		)
 	return club
 
@@ -86,23 +86,23 @@ def get_clubs(
 	return clubs
 
 
-@router.get("/{club_identifier}", response_model=ClubResponse)
-def get_club_by_id(club_identifier: str, db: Session = Depends(get_db)):
+@router.get("/{club_id}", response_model=ClubResponse)
+def get_club_by_id(club_id: str, db: Session = Depends(get_db)):
   # Lấy thông tin chi tiết của câu lạc bộ theo ID
-  club = get_club_by_identifier(club_identifier, db)
+  club = get_club_by_identifier(club_id, db)
   return club
 
 
 @router.put("/{club_id}", response_model=ClubResponse, status_code=status.HTTP_200_OK)
 def update_club(
-	club_identifier: str,
+	club_id: str,
 	club_in: ClubUpdate,
 	db: Session = Depends(get_db),
 	current_user: User = Depends(get_current_user)
 	):
 	# Cập nhật thông tin CLB
 	# Chỉ Chủ tịch CLB (admin_id) hoặc Super Admin mới có quyền sửa
-	club = get_club_by_identifier(club_identifier, db)
+	club = get_club_by_identifier(club_id, db)
 
 	# Kiểm tra Club Admin hoặc Super Admin
 	if club.admin_id != current_user.id and current_user.role != UserRole.SUPER_ADMIN:
@@ -116,13 +116,13 @@ def update_club(
 	for field, value in update_data.items():
 		setattr(club, field, value)
 
-		db.commit()
-		db.refresh(club)
-		return club
+	db.commit()
+	db.refresh(club)
+	return club
 
-@router.delete("/{club_identifier}", status_code=status.HTTP_200_OK)
+@router.delete("/{club_id}", status_code=status.HTTP_200_OK)
 def soft_delete_club(
-	club_identifier: str,
+	club_id: str,
 	payload: ClubDeleteConfirm,
 	db: Session = Depends(get_db),
 	current_user: User = Depends(get_current_user)
@@ -136,7 +136,7 @@ def soft_delete_club(
 	"""
 
 	# Tìm CLB theo id
-	club = get_club_by_identifier(club_identifier, db)
+	club = get_club_by_identifier(club_id, db)
 
   # Kiểm tra phân quyền
 	if club.admin_id != current_user.id and current_user.role != UserRole.SUPER_ADMIN:
@@ -164,9 +164,9 @@ def soft_delete_club(
 
 	return {"message": f"Đã vô hiệu hóa câu lạc bộ {club.name} thành công."}
 
-@router.post("/{club_identifier}/follow", response_model=ClubFollowResponse, status_code=status.HTTP_200_OK)
+@router.post("/{club_id}/follow", response_model=ClubFollowResponse, status_code=status.HTTP_200_OK)
 def toggle_follow_club(
-	club_identifier: str,
+	club_id: str,
 	db: Session = Depends(get_db),
 	current_user: User = Depends(get_current_user)
 ):
@@ -176,7 +176,7 @@ def toggle_follow_club(
 	- Nếu đã follow: Hệ thống sẽ hủy lượt theo dõi
 	"""
 	# Tìm CLB theo ID hoặc code
-	club = get_club_by_identifier(club_identifier, db)
+	club = get_club_by_identifier(club_id, db)
 
 	# Kiểm tra xem người dùng hiện tại đã follow CLB này chưa
 	follow_record = db.query(ClubFollower).filter(
@@ -210,17 +210,17 @@ def toggle_follow_club(
 		followers_count=followers_count
 	)
 
-@router.get("/{club_identifier}/is-following")
+@router.get("/{club_id}/is-following")
 def check_is_following(
-	club_identifier: str,
+	club_id: str,
 	db: Session = Depends(get_db),
 	current_user: User = Depends(get_current_user)
 ):
-	club = get_club_by_identifier(club_identifier, db)
+	club = get_club_by_identifier(club_id, db)
 	if not club:
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail=f"Không tìm thấy Câu lạc bộ với ID hoặc mã: '{club_identifier}'."
+			detail=f"Không tìm thấy Câu lạc bộ với ID hoặc mã: '{club_id}'."
 		)
 
 	# Kiểm tra xem người dùng hiện tại có đang follow CLB này không
@@ -244,14 +244,14 @@ def get_followed_clubs(
 	followed_clubs = [follow.club for follow in follows if follow.club.is_active and follow.club is not None]
 	return followed_clubs
 
-@router.get("/{club_identifier}/followers", response_model=List[UserResponse])
+@router.get("/{club_id}/followers", response_model=List[UserResponse])
 def get_club_followers(
-	club_identifier: str,
+	club_id: str,
 	db: Session = Depends(get_db)
 ):
 
 	# Lấy danh sách người dùng đang follow CLB
-	club = get_club_by_identifier(club_identifier, db)
+	club = get_club_by_identifier(club_id, db)
 	followers = db.query(ClubFollower).filter(
 	ClubFollower.club_id == club.id
 	).all()

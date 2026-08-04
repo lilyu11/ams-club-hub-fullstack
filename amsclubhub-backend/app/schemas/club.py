@@ -7,11 +7,13 @@ from datetime import datetime
 class ClubBase(BaseModel):
 	name: str
 	code: str
-	category: str
+	category: Optional[str] = None
 	description: Optional[str] = None
 	logo_url: Optional[str] = None
 	banner_url: Optional[str] = None
 	facebook_url: Optional[str] = None
+	contact_email: Optional[str] = None
+	is_active: Optional[bool] = True
 
 
 # Schema nhận dữ liệu khi tạo CLB mới
@@ -27,6 +29,7 @@ class ClubUpdate(BaseModel):
 	logo_url: Optional[str] = None
 	banner_url: Optional[str] = None
 	facebook_url: Optional[str] = None
+	contact_email: Optional[str] = None
 	is_active: Optional[bool] = None
 
 

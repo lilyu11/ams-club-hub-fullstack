@@ -9,10 +9,17 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { LogOut, Users, PlusCircle } from 'lucide-react';
 
 interface Club {
-  id: number;
+  id: string | number;
   name: string;
   code: string;
-  description: string;
+  category?: string;
+  description?: string;
+  logo_url?: string | null;
+  banner_url?: string | null;
+  facebook_url?: string | null;
+  contact_email?: string | null;
+  is_active?: boolean;
+  followers_count?: number;
 }
 
 export default function HomePage() {
