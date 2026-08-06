@@ -145,3 +145,24 @@ def delete_campaign_post(
 	db.delete(post)
 	db.commit()
 	return None
+
+# # Route cho Like & Save UNDONE toggle like / save
+# @router.post("/posts/{post_id}/like")
+# def toggle_like_post(
+# 	club_identifier: str,
+# 	post_in: CampaignPostCreate,
+# 	db: Session = Depends(get_db),
+# 	current_user: User = Depends(get_current_user)
+# ):
+    
+#     return {"message": "Toggled like successfully"}
+
+# @router.post("/posts/{post_id}/save")
+# def toggle_save_post(
+# 	club_identifier: str,
+# 	post_in: CampaignPostCreate,
+# 	db: Session = Depends(get_db),
+# 	current_user: User = Depends(get_current_user)
+# ):
+#     # Code xử lý lưu bài viết ở đây
+#     return {"message": "Toggled save successfully"}

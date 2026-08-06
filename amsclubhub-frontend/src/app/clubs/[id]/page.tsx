@@ -245,7 +245,7 @@ export default function ClubDetailPage() {
         type: 'RECRUITMENT',
         title: postTitle,
         content: postContent,
-        application_form_url: postFormUrl.trim() || null,
+        action_url: postFormUrl.trim() || null,
         image_url: postImageUrl.trim() || null,
       };
 
@@ -343,7 +343,7 @@ export default function ClubDetailPage() {
                     setEditingPost(p);
                     setPostTitle(p.title);
                     setPostContent(p.content);
-                    setPostFormUrl(p.application_form_url || '');
+                    setPostFormUrl(p.action_url || '');
                     setPostImageUrl(p.image_url || '');
                     setIsPostDialogOpen(true);
                   }}

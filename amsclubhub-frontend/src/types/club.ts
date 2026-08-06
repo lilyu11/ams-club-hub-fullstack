@@ -25,7 +25,7 @@ export interface Post {
   created_at?: string;
   club_id?: string | number; 
   type?: string;
-  application_form_url?: string | null;
+  action_url?: string | null;
   club?: {
     name: string;
     logo_url: string;

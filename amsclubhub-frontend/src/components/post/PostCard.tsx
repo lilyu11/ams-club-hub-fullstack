@@ -33,10 +33,10 @@ export default function PostCard({ post, canEditClub, onEdit, onDelete }: PostCa
 				)}
 
 				{/* Nếu bài viết này có kèm Link Google Form ứng tuyển */}
-				{post.application_form_url && (
+				{post.action_url && (
 					<div className="pt-2">
 						<a
-							href={post.application_form_url}
+							href={post.action_url}
 							target="_blank"
 							rel="noopener noreferrer"
 							className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-md transition shadow-sm"
