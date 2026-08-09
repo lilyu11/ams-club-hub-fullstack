@@ -105,7 +105,7 @@ export default function ImageUpload({
 				</div>
 			) : (
 				<label
-					className={`flex flex-col items-center justify-center border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl cursor-pointer bg-slate-50 hover:bg-indigo-50/50 transition-all ${getContainerClass()}`}
+					className={`border-2 border-dashed border-slate-300 dark:border-zinc-700/80 bg-slate-50/50 dark:bg-zinc-800/40 hover:bg-slate-100 dark:hover:bg-zinc-800/80 transition-all rounded-2xl p-6 text-center cursor-pointer flex flex-col items-center justify-center gap-2 group ${getContainerClass()}`}
 				>
 					{uploading ? (
 						<div className="flex flex-col items-center gap-2">
@@ -115,7 +115,7 @@ export default function ImageUpload({
 					) : (
 						<div className="flex flex-col items-center gap-1.5 p-4 text-center">
 							<Upload className="w-6 h-6 text-slate-400" />
-							<span className="text-xs font-semibold text-slate-600">Chọn ảnh từ máy</span>
+							<span className="text-xs font-medium text-zinc-400">Chọn ảnh từ máy</span>
 						</div>
 					)}
 

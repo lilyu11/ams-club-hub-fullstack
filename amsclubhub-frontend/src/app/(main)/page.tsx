@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import CreatePostCard from '@/components/feed/CreatePostCard';
-import PostCard, { PostData } from '@/components/feed/PostCard';
+import PostCard from '@/components/feed/PostCard';
 import api from '@/lib/api';
+import { PostData } from '@/types/club';
 
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
   const [posts, setPosts] = useState<PostData[]>([]);
-  const [followedClubIds, setFollowedClubIds] = useState<Set<number>>(new Set());
+  const [followedClubIds, setFollowedClubIds] = useState<Set<number | string | undefined>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const fetchFeedPosts = useCallback(async () => {
@@ -24,13 +25,17 @@ export default function HomePage() {
 	  // 1. Lấy bài viết
 	  let rawPosts: any[] = [];
 	  if (postsRes.status === 'fulfilled') {
-		rawPosts = Array.isArray(postsRes.value.data) ? postsRes.value.data : postsRes.value.data?.items || [];
+		rawPosts = Array.isArray(postsRes.value.data)
+		  ? postsRes.value.data
+		  : postsRes.value.data?.items || [];
 	  }
 
 	  // 2. Map tên & logo CLB
 	  const clubsMap: Record<number, { name: string; logo?: string }> = {};
 	  if (clubsRes.status === 'fulfilled') {
-		const rawClubs = Array.isArray(clubsRes.value.data) ? clubsRes.value.data : clubsRes.value.data?.items || [];
+		const rawClubs = Array.isArray(clubsRes.value.data)
+		  ? clubsRes.value.data
+		  : clubsRes.value.data?.items || [];
 		rawClubs.forEach((c: any) => {
 		  clubsMap[c.id] = { name: c.name, logo: c.logo_url };
 		});
@@ -39,7 +44,9 @@ export default function HomePage() {
 	  // 3. Lấy danh sách ID các câu lạc bộ đã follow
 	  const followedSet = new Set<number>();
 	  if (followedRes.status === 'fulfilled') {
-		const followedList = Array.isArray(followedRes.value.data) ? followedRes.value.data : followedRes.value.data?.items || [];
+		const followedList = Array.isArray(followedRes.value.data)
+		  ? followedRes.value.data
+		  : followedRes.value.data?.items || [];
 		followedList.forEach((club: any) => followedSet.add(club.id || club.club_id));
 	  }
 	  setFollowedClubIds(followedSet);
@@ -49,11 +56,15 @@ export default function HomePage() {
 		...p,
 		club_name: p.club?.name || clubsMap[p.club_id]?.name || 'AmsClubHub',
 		club_logo: p.club?.logo_url || clubsMap[p.club_id]?.logo,
-		// Giả lập action_url demo nếu backend chưa trả về field này
-		action_url: p.action_url || null, 
+		action_url: p.action_url || null,
 	  }));
 
-	  formatted.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+	  formatted.sort((a, b) => {
+		const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+  		const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+  		return timeB - timeA;
+	  });
+
 	  setPosts(formatted);
 	} catch (err) {
 	  console.error('Lỗi khi tải bảng tin:', err);
@@ -65,6 +76,12 @@ export default function HomePage() {
   useEffect(() => {
 	fetchFeedPosts();
   }, [fetchFeedPosts]);
+
+  // Lọc bài viết hiển thị theo Tab đang chọn
+  const displayedPosts =
+	activeTab === 'following'
+	  ? posts.filter((p) => followedClubIds.has(p.club_id))
+	  : posts;
 
   return (
 	<div className="min-h-screen">
@@ -95,8 +112,8 @@ export default function HomePage() {
 		</button>
 	  </div>
 
-	  {/* Khung Tạo bài viết */}
-	  <CreatePostCard onPostCreated={fetchFeedPosts} />
+	  {/* Khung Tạo bài viết UNDONE*/}
+	  {/* <CreatePostCard onPostCreated={fetchFeedPosts} /> */}
 
 	  {/* Bảng tin */}
 	  <div>
@@ -114,18 +131,20 @@ export default function HomePage() {
 			  </div>
 			))}
 		  </div>
-		) : posts.length === 0 ? (
+		) : displayedPosts.length === 0 ? (
 		  <div className="text-center py-12 text-muted-foreground text-sm">
-			Chưa có bài đăng nào trong Bảng tin.
+			{activeTab === 'following'
+			  ? 'Bạn chưa theo dõi câu lạc bộ nào hoặc các câu lạc bộ chưa có bài đăng.'
+			  : 'Chưa có bài đăng nào trong Bảng tin.'}
 		  </div>
 		) : (
 		  <div className="divide-y divide-border">
-			{posts.map((post) => (
+			{displayedPosts.map((post) => (
 			  <PostCard
 				key={post.id}
 				post={post}
-				// Tự động truyền true nếu club_id nằm trong danh sách đã follow
 				isFollowedInitial={followedClubIds.has(post.club_id)}
+				canEditClub={false} // Trang chủ không cho sửa/xóa bài
 			  />
 			))}
 		  </div>

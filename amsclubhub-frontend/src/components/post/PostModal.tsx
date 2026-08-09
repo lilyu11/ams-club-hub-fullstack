@@ -1,6 +1,6 @@
 'use client';
 
-import { Post } from '@/types/club';
+import { PostData } from '@/types/club';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +11,7 @@ import ImageUpload from '@/components/ui/ImageUpload';
 interface PostModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	editingPost: Post | null;
+	editingPost: PostData | null;
 	postTitle: string;
 	setPostTitle: (val: string) => void;
 	postContent: string;
@@ -22,6 +22,7 @@ interface PostModalProps {
 	setPostImageUrl: (val: string) => void;
 	submitting: boolean;
 	onSubmit: (e: React.SyntheticEvent<HTMLFormElement>) => void;
+	triggerToast?: (message: string, type?: 'success' | 'error') => void;
 }
 
 export default function PostModal({
@@ -38,18 +39,19 @@ export default function PostModal({
 	setPostImageUrl,
 	submitting,
 	onSubmit,
+	triggerToast,
 }: PostModalProps) {
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="sm:max-w-md bg-white">
+			<DialogContent className="bg-background dark:bg-zinc-900 text-foreground dark:text-zinc-100 border-border dark:border-zinc-800">
 				<DialogHeader>
 					<DialogTitle>
-						{editingPost ? 'Chỉnh sửa bài viết' : 'Tạo bài đăng tuyển thành viên / Sự kiện'}
+						{editingPost ? 'Chỉnh sửa bài đăng' : 'Tạo bài đăng'}
 					</DialogTitle>
 				</DialogHeader>
 				<form onSubmit={onSubmit} className="space-y-4 mt-2">
 					<div className="space-y-2">
-						<label className="text-sm font-medium">Tiêu đề bài viết</label>
+						<label className="text-xs font-medium text-zinc-400">Tiêu đề bài viết</label>
 						<Input
 							placeholder="Ví dụ: [Tuyển thành viên 2026] Mở đơn đăng ký đợt 1"
 							value={postTitle}
@@ -59,7 +61,7 @@ export default function PostModal({
 					</div>
 
 					<div className="space-y-2">
-						<label className="text-sm font-medium">Link Google Form / Link ứng tuyển (Không bắt buộc)</label>
+						<label className="text-xs font-medium text-zinc-400">Link Google Form / Link ứng tuyển (Không bắt buộc)</label>
 						<Input
 							placeholder="https://forms.gle/..."
 							value={postFormUrl}
@@ -68,7 +70,7 @@ export default function PostModal({
 					</div>
 
 					<div className="space-y-2">
-						<label className="text-sm font-medium">Nội dung chi tiết</label>
+						<label className="text-xs font-medium text-zinc-400">Nội dung chi tiết</label>
 						<Textarea
 							placeholder="Nhập yêu cầu, mô tả sự kiện..."
 							rows={5}
@@ -79,16 +81,16 @@ export default function PostModal({
 					</div>
 
 					<div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Ảnh đính kèm bài viết (Tùy chọn)
-            </label>
-            <ImageUpload
-              value={postImageUrl}
-              onChange={setPostImageUrl}
-              aspectRatio="post"
+			<label className="text-xs font-medium text-zinc-400">
+			  Ảnh đính kèm bài viết (Tùy chọn)
+			</label>
+			<ImageUpload
+			  value={postImageUrl}
+			  onChange={setPostImageUrl}
+			  aspectRatio="post"
 							uploadEndpoint="/upload/image"
-            />
-          </div>
+			/>
+		  </div>
 
 					<DialogFooter>
 						<Button type="button" variant="outline" onClick={onClose}>

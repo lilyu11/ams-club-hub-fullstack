@@ -1,4 +1,4 @@
-'use client';
+'use client'; // UNDONE
 
 import { useState, useEffect } from 'react';
 import { Image as ImageIcon, Send, Sparkles, User } from 'lucide-react';
