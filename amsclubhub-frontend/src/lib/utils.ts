@@ -12,7 +12,7 @@ const BACKEND_DOMAIN = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:800
 // Hàm xử lý URL ảnh
 export function getFullImageUrl(path?: string | null): string {
 	// Thay thế placeholder hỏng bằng placehold.co
-	if (!path || path.includes('via.placeholder.com')) {
+	if (!path || path === 'string' || path.includes('via.placeholder.com')) {
 		return 'https://placehold.co/300x300?text=No+Image';
 	}
 

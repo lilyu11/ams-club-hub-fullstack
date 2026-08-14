@@ -20,6 +20,8 @@ interface PostModalProps {
 	setPostFormUrl: (val: string) => void;
 	postImageUrl: string;
 	setPostImageUrl: (val: string) => void;
+	postDeadline: string;
+    setPostDeadline: (val: string) => void;
 	submitting: boolean;
 	onSubmit: (e: React.SyntheticEvent<HTMLFormElement>) => void;
 	triggerToast?: (message: string, type?: 'success' | 'error') => void;
@@ -37,6 +39,8 @@ export default function PostModal({
 	setPostFormUrl,
 	postImageUrl,
 	setPostImageUrl,
+	postDeadline,
+    setPostDeadline,
 	submitting,
 	onSubmit,
 	triggerToast,
@@ -70,6 +74,20 @@ export default function PostModal({
 					</div>
 
 					<div className="space-y-2">
+                        <label className="text-xs font-medium text-zinc-400">
+                            Hạn chót / Deadline bài viết (Dùng để gửi email nhắc nhở)
+                        </label>
+                        <Input
+                            type="datetime-local"
+                            value={postDeadline}
+                            onChange={(e) => setPostDeadline(e.target.value)}
+							onKeyDown={(e) => e.preventDefault()}
+							onClick={(e) => e.currentTarget.showPicker?.()}
+                            className="cursor-pointer select-none"
+                        />
+                    </div>
+
+					<div className="space-y-2">
 						<label className="text-xs font-medium text-zinc-400">Nội dung chi tiết</label>
 						<Textarea
 							placeholder="Nhập yêu cầu, mô tả sự kiện..."
@@ -77,6 +95,7 @@ export default function PostModal({
 							value={postContent}
 							onChange={(e) => setPostContent(e.target.value)}
 							required
+							className="resize-none h-40 overflow-y-auto"
 						/>
 					</div>
 

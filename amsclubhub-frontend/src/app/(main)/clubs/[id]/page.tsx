@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import { getFullImageUrl } from '@/lib/utils';
-import { UserProfile, ClubDetail, PostData } from '@/types/club';
+import { UserProfile, Club, PostData } from '@/types/club';
 
 // Import các Component
 import ClubHeader from '@/components/club/ClubHeader';
@@ -44,7 +44,7 @@ export default function ClubDetailPage() {
 	const clubId = params?.id as string;
 
 	// States Dữ liệu
-	const [club, setClub] = useState<ClubDetail | null>(null);
+	const [club, setClub] = useState<Club | null>(null);
 	const [posts, setPosts] = useState<PostData[]>([]);
 	const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 	const [isFollowing, setIsFollowing] = useState(false);
@@ -58,6 +58,7 @@ export default function ClubDetailPage() {
 	const [postImageUrl, setPostImageUrl] = useState('');
 	const [submitting, setSubmitting] = useState(false);
 	const [editingPost, setEditingPost] = useState<PostData | null>(null);
+	const [postDeadline, setPostDeadline] = useState('');
 
 	// State lưu dữ liệu thô từ API cho Form Sửa CLB
 	const [rawClubData, setRawClubData] = useState<any>(null);
@@ -108,7 +109,7 @@ export default function ClubDetailPage() {
 					console.log('Chưa kết nối API /users/me.');
 				}
 
-				// 1. Tải thông tin CLB
+				// Tải thông tin CLB
 				const clubRes = await api.get(`/clubs/${clubId}`);
 				const rawClub = clubRes.data;
 				
@@ -129,7 +130,7 @@ export default function ClubDetailPage() {
 				setClub(processedClub);
 				setClubFormData(mapRawDataToForm(rawClub));
 
-				// 2. Tải danh sách bài đăng
+				// Tải danh sách bài đăng
 				try {
 					const postsRes = await api.get('/posts', {
 						params: { club_identifier: clubId },
@@ -139,7 +140,7 @@ export default function ClubDetailPage() {
 					console.log('Chưa có bài đăng nào.');
 				}
 
-				// 3. Tải trạng thái Follow
+				// Tải trạng thái Follow
 				try {
 					const followRes = await api.get(`/clubs/${clubId}/is-following`);
 					setIsFollowing(!!followRes.data?.is_following);
@@ -246,6 +247,7 @@ export default function ClubDetailPage() {
 				content: postContent,
 				action_url: postFormUrl.trim() || null,
 				image_url: postImageUrl.trim() || null,
+				deadline: postDeadline ? new Date(postDeadline).toISOString() : null,
 			};
 
 			setIsPostDialogOpen(false);
@@ -265,6 +267,7 @@ export default function ClubDetailPage() {
 			setPostContent('');
 			setPostFormUrl('');
 			setPostImageUrl('');
+			setPostDeadline('');
 			setEditingPost(null);
 		} catch (err) {
 			triggerToast('Có lỗi xảy ra khi lưu bài đăng.', 'error');
@@ -355,6 +358,7 @@ export default function ClubDetailPage() {
                   setPostContent('');
                   setPostFormUrl('');
                   setPostImageUrl('');
+				  setPostDeadline('');
                   setIsPostDialogOpen(true);
                 }}
               >
@@ -377,6 +381,7 @@ export default function ClubDetailPage() {
                   club_name: post.club_name || club?.name || 'Câu lạc bộ',
                   club_logo: post.club_logo || club?.logo_url || DEFAULT_AVATAR,
                   action_url: post.action_url || (post as any).form_url || undefined,
+				  deadline: post.deadline || undefined,
                 };
 
                 return (
@@ -391,6 +396,22 @@ export default function ClubDetailPage() {
                       setPostContent(p.content || '');
                       setPostFormUrl(p.action_url || '');
                       setPostImageUrl(p.image_url || '');
+
+					  // Format ISO string sang định dạng YYYY-MM-DDTHH:mm cho datetime-local input
+                      if (p.deadline) {
+                        try {
+                          const d = new Date(p.deadline);
+                          const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000)
+                            .toISOString()
+                            .slice(0, 16);
+                          setPostDeadline(localIso);
+                        } catch {
+                          setPostDeadline('');
+                        }
+                      } else {
+                        setPostDeadline('');
+                      }
+
                       setIsPostDialogOpen(true);
                     }}
                     onDelete={handleRequestDelete}
@@ -427,6 +448,8 @@ export default function ClubDetailPage() {
         setPostFormUrl={setPostFormUrl}
         postImageUrl={postImageUrl}
         setPostImageUrl={setPostImageUrl}
+		postDeadline={postDeadline}
+        setPostDeadline={setPostDeadline}
         submitting={submitting}
         onSubmit={handleCreateOrUpdatePost}
         triggerToast={triggerToast}

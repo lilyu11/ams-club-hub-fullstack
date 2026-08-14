@@ -5,16 +5,18 @@ export interface UserProfile {
 	club_id?: number | string;
 }
 
-export interface ClubDetail {
-	id: number | string;
-	name: string;
-	code: string;
-	description: string;
-	category?: string;
-	logo_url?: string;
-	banner_url?: string;
-	facebook_url?: string;
-	contact_email?: string;
+export interface Club {
+  id: string | number;
+  name: string;
+  code: string;
+  category?: string;
+  description?: string;
+  logo_url?: string | null;
+  banner_url?: string | null;
+  facebook_url?: string | null;
+  contact_email?: string | null;
+  is_active?: boolean;
+  followers_count?: number;
 }
 
 export interface PostData {
@@ -26,6 +28,7 @@ export interface PostData {
   club_logo?: string;
   created_at: string;
   action_url?: string | null;
+  deadline?:string;
   image_url?: string | null;
   is_following?: boolean;
   club?: {
