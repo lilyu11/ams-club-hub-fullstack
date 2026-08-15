@@ -5,20 +5,20 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { 
 	Home, 
-	Users, 
+	Compass, 
 	Bell, 
 	FileText, 
 	Settings, 
 	Sparkles,
-	Save,
+	Flame,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
 	{ name: 'Trang chủ', href: '/', icon: Home, requireAuth: false },
-	{ name: 'Câu lạc bộ', href: '/clubs', icon: Users, requireAuth: false },
-	{ name: 'Thông báo', href: '/notifications', icon: Bell, requireAuth: true },
+	{ name: 'Câu lạc bộ', href: '/clubs', icon: Compass, requireAuth: false },
 	// { name: 'Bài đăng', href: '/posts', icon: FileText, requireAuth: false },
-	{ name: 'Đã lưu', href: '/saved', icon: Save, requireAuth: true },
+	{ name: 'Sự kiện', href: '/events', icon: Flame, requireAuth: true },
+	{ name: 'Thông báo', href: '/notifications', icon: Bell, requireAuth: true },
 	{ name: 'Cài đặt', href: '/settings', icon: Settings, requireAuth: false },
 ];
 

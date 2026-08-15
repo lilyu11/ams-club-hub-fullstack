@@ -20,7 +20,7 @@ export default function HomePage() {
 
 			// Gọi đồng thời API Bài viết, API CLB và API CLB đã follow
 			const [postsRes, clubsRes, followedRes] = await Promise.allSettled([
-			api.get('/posts', { params: { limit: 200, sort_by: 'created_at', order: 'desc' } }),
+			api.get('/posts', { params: { limit: 200, sort_by: 'created_at', order: 'desc', type: 'POST' } }),
 			api.get('/clubs', { params: { limit: 100 } }),
 			api.get('/clubs/followed/me'),
 			]);
@@ -34,10 +34,14 @@ export default function HomePage() {
 			}
 
 			// Lọc các bài viết được tạo trong vòng 7 ngày gần nhất
-			const recentPosts = rawPosts.filter((post) => {
-			if (!post.created_at) return true; // Giữ lại nếu bài viết không có trường ngày
-			const postTime = new Date(post.created_at).getTime();
-			return postTime >= sevenDaysAgo;
+			const recentPosts = rawPosts.filter((post) => {			
+				// Lấy bài viết thuộc type POST hoặc không có type
+				const isPostType = post.type === "POST" || !post.type;
+				if (!isPostType) return false;
+				// Giữ lại nếu bài viết không có trường ngày
+				if (!post.created_at) return true; 
+				const postTime = new Date(post.created_at).getTime();
+				return postTime >= sevenDaysAgo;
 			});
 
 			// Map tên & logo CLB

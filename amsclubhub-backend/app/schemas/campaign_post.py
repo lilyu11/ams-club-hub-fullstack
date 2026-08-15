@@ -6,7 +6,7 @@ from app.models.campaign_post import PostType
 
 # Schema cơ sở cho bài viết
 class CampaignPostBase(BaseModel):
-	type: PostType = PostType.RECRUITMENT
+	type: PostType = PostType.POST
 	title: str
 	content: str
 	fb_post_url: Optional[str] = None

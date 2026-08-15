@@ -22,8 +22,8 @@ export interface Club {
 export interface PostData {
   id: number | string;
   title: string;
-  content?: string;                  // Thêm dấu ? để cho phép undefined/null
-  club_id?: number | string;         // Cho phép cả string lẫn number
+  content?: string;
+  club_id?: number | string;
   club_name?: string;
   club_logo?: string;
   created_at: string;
@@ -31,10 +31,12 @@ export interface PostData {
   deadline?:string;
   image_url?: string | null;
   is_following?: boolean;
+  type?: 'POST' | 'EVENT' | string;
   club?: {
     id?: number | string;
     name?: string;
     logo_url?: string;
+    category?:string | null;
   };
 }
 

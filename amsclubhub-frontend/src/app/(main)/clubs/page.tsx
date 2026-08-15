@@ -130,7 +130,7 @@ export default function ClubsPage() {
 					<div className="flex items-center gap-2">
 						<Compass className="w-7 h-7 text-blue-500" />
 						<h1 className="text-2xl font-bold text-slate-900 dark:text-zinc-100">
-							Danh sách câu lạc bộ
+							Câu lạc bộ
 						</h1>
 					</div>
 				</div>
