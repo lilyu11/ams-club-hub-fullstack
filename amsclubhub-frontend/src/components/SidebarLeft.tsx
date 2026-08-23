@@ -7,7 +7,6 @@ import {
 	Home, 
 	Compass, 
 	Bell, 
-	FileText, 
 	Settings, 
 	Sparkles,
 	Flame,
@@ -16,7 +15,6 @@ import {
 const NAV_ITEMS = [
 	{ name: 'Trang chủ', href: '/', icon: Home, requireAuth: false },
 	{ name: 'Câu lạc bộ', href: '/clubs', icon: Compass, requireAuth: false },
-	// { name: 'Bài đăng', href: '/posts', icon: FileText, requireAuth: false },
 	{ name: 'Sự kiện', href: '/events', icon: Flame, requireAuth: true },
 	{ name: 'Thông báo', href: '/notifications', icon: Bell, requireAuth: true },
 	{ name: 'Cài đặt', href: '/settings', icon: Settings, requireAuth: false },
@@ -34,13 +32,13 @@ export default function SidebarLeft() {
 		setIsLoggedIn(!!token);
 	}, [pathname]); // Check lại mỗi khi đổi route
 
-	// Xử lý bấm vào menu yêu cầu đăng nhập
-	const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: typeof NAV_ITEMS[0]) => {
-		if (item.requireAuth && !isLoggedIn) {
-			e.preventDefault(); // Chặn không cho sang trang khác ở navigation
-			router.push('/login'); // Chuyển hướng về trang đăng nhập
-		}
-	};
+	// Xử lý bấm vào menu yêu cầu đăng nhập EDITING
+	// const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: typeof NAV_ITEMS[0]) => {
+	// 	if (item.requireAuth && !isLoggedIn) {
+	// 		e.preventDefault(); // Chặn không cho sang trang khác ở navigation
+	// 		router.push('/login'); // Chuyển hướng về trang đăng nhập
+	// 	}
+	// };
 
 	return (
 		<div className="flex flex-col justify-between h-full py-2">
@@ -62,7 +60,7 @@ export default function SidebarLeft() {
 							<Link
 								key={item.href}
 								href={item.href}
-								onClick={(e) => handleNavClick(e, item)}
+								// onClick={(e) => handleNavClick(e, item)}
 								className={`flex items-center gap-4 px-3 py-3 rounded-full text-base font-medium transition-colors ${
 									isActive
 										? 'font-bold text-foreground bg-muted/60'

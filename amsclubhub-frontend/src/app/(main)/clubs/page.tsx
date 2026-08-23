@@ -141,7 +141,7 @@ export default function ClubsPage() {
 						type="text"
 						value={searchQuery}
 						onChange={(e) => setSearchQuery(e.target.value)}
-						placeholder="Tìm kiếm CLB theo tên, mã viết tắt (#HAMAC)..."
+						placeholder="Tìm kiếm theo tên, mã viết tắt..."
 						className="w-full pl-11 pr-4 py-3 bg-slate-100 dark:bg-zinc-800/80 border border-slate-200 dark:border-zinc-700/60 rounded-2xl text-slate-900 dark:text-zinc-100 placeholder:text-slate-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
 					/>
 				</div>

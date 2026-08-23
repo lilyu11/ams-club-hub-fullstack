@@ -115,18 +115,15 @@ export default function ClubHeader({
                 {club?.name}
                 <CheckCircle2 className="w-5 h-5 text-sky-500 fill-sky-500/20" />
               </h1>
-              {club?.code && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-neutral-900 text-neutral-300 border border-neutral-800 uppercase">
-                  #{club.code}
-                </span>
-              )}
             </div>
 
             <div className="flex items-center gap-2 text-xs text-neutral-400">
-              <span className="font-medium text-sky-400">@{club?.code ? club.code.toLowerCase() : 'club'}</span>
-              <span>•</span>
+              <span className="px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800 uppercase">
+                #{club?.code ? club.code : 'CLUB'}
+              </span>
+              {/* <span>•</span> */}
               <span className="px-2.5 py-0.5 rounded-full bg-neutral-900 text-neutral-300 border border-neutral-800">
-                {club?.category || 'Hội nhóm'}
+                {club?.category || 'Chưa phân loại'}
               </span>
             </div>
           </div>

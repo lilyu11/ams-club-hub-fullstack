@@ -41,7 +41,7 @@ origins = [
 	#                             Mở cho tất cả các nguồn (dùng thoải mái khi Dev)
 ]
 
-# 🟢 3. TÍCH HỢP CORS MIDDLEWARE VÀO FASTAPI
+# TÍCH HỢP CORS MIDDLEWARE VÀO FASTAPI
 app.add_middleware(
 	CORSMiddleware,
 	allow_origins=origins,            # Cho phép danh sách origin trên

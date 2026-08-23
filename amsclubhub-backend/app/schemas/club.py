@@ -25,6 +25,7 @@ class ClubCreate(ClubBase):
 class ClubUpdate(BaseModel):
 	name: Optional[str] = None
 	category: Optional[str] = None
+	code: Optional[str] = None
 	description: Optional[str] = None
 	logo_url: Optional[str] = None
 	banner_url: Optional[str] = None

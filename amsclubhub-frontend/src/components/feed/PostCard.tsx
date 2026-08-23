@@ -12,6 +12,7 @@ import {
 	Share2,
 	Edit3,
 	Trash2,
+	AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -35,10 +36,39 @@ export default function PostCard({
 	// Ưu tiên lấy trạng thái follow từ prop truyền vào
 	const [isFollowing, setIsFollowing] = useState(isFollowedInitial || !!post.is_following);
 	const [isFollowLoading, setIsFollowLoading] = useState(false);
-	const [toastMessage, setToastMessage] = useState<string | null>(null);
+	const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const [isReminded, setIsReminded] = useState<boolean>(false);
+	const [isLoadingReminder, setIsLoadingReminder] = useState<boolean>(false);
 
 	const menuRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const checkReminderStatus = async () => {
+			const token = localStorage.getItem('access_token');
+			if (!token) return; // EDITINGRN show toast hiện bạn chưa đăng nhập
+
+			try {
+				const response = await api.get('/reminders/me');
+				const reminders = response.data || [];
+
+				// Kiểm tra xem bài viết này đã có trong danh sách reminder chưa
+				const exists = reminders.some(
+					(item: any) =>
+						String(item.campaign_post_id) === String(post.id) ||
+						String(item.campaign_post?.id) === String(post.id)
+				);
+
+				if (exists) {
+					setIsReminded(true);
+				}
+			} catch (error) {
+				console.error('Lỗi kiểm tra danh sách reminder:', error);
+			}
+		};
+
+		checkReminderStatus();
+	}, [post.id]);
 
 	// Cập nhật lại state khi prop thay đổi
 	useEffect(() => {
@@ -56,30 +86,51 @@ export default function PostCard({
 		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, []);
 
-	const showToast = (message: string) => {
-		setToastMessage(message);
+	const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+		setToastMessage({ message, type });
 		setTimeout(() => {
 			setToastMessage(null);
 		}, 2500);
 	};
 
-	// Toggle Remind me (Theo dõi CLB)
+	// Nút thông báo
 	const handleRemindMe = async (e: React.MouseEvent) => {
 		e.stopPropagation(); // Tránh chuyển hướng bài viết
-		if (isFollowLoading) return;
-		setIsFollowLoading(true);
-		const nextState = !isFollowing;
-		setIsFollowing(nextState);
 
-		const clubName = post.club_name || 'Câu lạc bộ';
+		// Kiểm tra Token
+		const token = localStorage.getItem('access_token');
+		if (!token) {
+			showToast('Vui lòng đăng nhập để bật thông báo', 'error');
+			return;
+		}
+
+		if (!post.deadline) {
+			showToast('Bài viết không có deadline để nhắc nhở', 'error');
+			return;
+		}
+
+		// Kiểm tra deadline có hợp lệ và đã trôi qua so với hiện tại chưa
+		const deadlineDate = new Date(post.deadline);
+		const now = new Date();
+		if (isNaN(deadlineDate.getTime()) || deadlineDate < now) {
+			showToast('Đã quá hạn deadline, không thể bật nhắc nhở!', 'error');
+			return;
+		}
+
+		// Nếu đang loading hoặc đã bật thông báo rồi thì dừng (khóa 1 chiều)
+		if (isLoadingReminder || isReminded) return;
+
+		setIsLoadingReminder(true);
 
 		try {
-			await api.post(`/clubs/${post.club_id}/follow`);
-			showToast(nextState ? `Đã bật thông báo từ ${clubName}` : `Đã tắt thông báo từ ${clubName}`);
-		} catch {
-			showToast(nextState ? `Đã bật nhắc nhở từ ${clubName}` : `Đã tắt nhắc nhở từ ${clubName}`);
+			await api.post(`/posts/${post.id}/remind`);
+			setIsReminded(true);
+			showToast('Đã bật nhắc nhở cho bài viết này!', 'success');
+		} catch (error) {
+			console.error('Lỗi khi cài đặt nhắc nhở:', error);
+			showToast('Không thể bật nhắc nhở. Vui lòng thử lại sau.', 'error');
 		} finally {
-			setIsFollowLoading(false);
+			setIsLoadingReminder(false);
 		}
 	};
 
@@ -91,7 +142,7 @@ export default function PostCard({
 		try {
 			if (navigator.clipboard) {
 				await navigator.clipboard.writeText(postUrl);
-				showToast('Đã sao chép liên kết bài viết!');
+				showToast('Đã sao chép liên kết bài viết!', 'success');
 			} else {
 				// Fallback cho trình duyệt cũ hoặc môi trường không phải HTTPS (không dùng execCommand)
 				prompt('Sao chép liên kết bên dưới:', postUrl);
@@ -102,13 +153,35 @@ export default function PostCard({
 		}
 	};
 
-	const formatTime = (dateStr: string) => {
+	const formatTime = (dateStr?: string) => {
+		if (!dateStr) return 'Mới đây';
+
 		try {
-			const diff = Date.now() - new Date(dateStr).getTime();
-			const hours = Math.floor(diff / (1000 * 60 * 60));
-			if (hours < 1) return 'Vừa xong';
+			// Chuẩn hóa chuỗi thời gian (thay khoảng trắng bằng 'T')
+			let formattedStr = dateStr.replace(' ', 'T');
+
+			// Nếu thiếu 'Z' hoặc múi giờ, ép về UTC bằng cách thêm 'Z'
+			if (!formattedStr.endsWith('Z') && !formattedStr.includes('+')) {
+				formattedStr += 'Z';
+			}
+
+			const pastTime = new Date(formattedStr).getTime();
+			const now = Date.now();
+			const diffInSeconds = Math.floor((now - pastTime) / 1000);
+
+			// Dưới 1 phút
+			if (diffInSeconds < 60) return 'Vừa xong';
+
+			// Hiển thị theo phút
+			const minutes = Math.floor(diffInSeconds / 60);
+			if (minutes < 60) return `${minutes} phút trước`;
+
+			// Hiển thị theo giờ
+			const hours = Math.floor(minutes / 60);
 			if (hours < 24) return `${hours} giờ trước`;
-			return new Date(dateStr).toLocaleDateString('vi-VN');
+
+			// Trên 24 tiếng -> Trả về ngày tháng (theo đúng múi giờ VN)
+			return new Date(formattedStr).toLocaleDateString('vi-VN');
 		} catch {
 			return 'Mới đây';
 		}
@@ -121,7 +194,7 @@ export default function PostCard({
 				<Link href={`/clubs/${post.club_id}`} className="shrink-0" onClick={(e) => e.stopPropagation()}>
 					{post.club_logo ? (
 						<img
-							src={getFullImageUrl(post.club_logo)}
+							src={post.club_logo}
 							alt={post.club_name || 'Club'}
 							className="w-10 h-10 rounded-full object-cover border border-border hover:opacity-90 transition"
 						/>
@@ -148,9 +221,9 @@ export default function PostCard({
 							<span className="text-muted-foreground">{formatTime(post.created_at)}</span>
 						</div>
 
-						{/* Menu Quản lý bài viết (Chỉ hiện khi có quyền canEditClub) */}
+						{/* Menu Quản lý bài viết */}
 						{canEditClub && (
-							<div className="relative" ref={menuRef}>
+							<div className="relative">
 								<button
 									type="button"
 									onClick={(e) => {
@@ -162,7 +235,6 @@ export default function PostCard({
 									<MoreHorizontal className="w-4 h-4" />
 								</button>
 
-								{/* Dropdown Menu Popup */}
 								{isMenuOpen && (
 									<div className="absolute right-0 mt-1 w-36 bg-popover border border-border rounded-xl shadow-xl z-20 overflow-hidden py-1">
 										{onEdit && (
@@ -208,11 +280,10 @@ export default function PostCard({
 							</p>
 						)}
 
-						{/* Hình ảnh đính kèm */}
 						{post.image_url && (
 							<div className="mt-2.5 rounded-2xl overflow-hidden border border-border">
 								<img
-									src={getFullImageUrl(post.image_url)}
+									src={post.image_url}
 									alt="Post Attachment"
 									className="w-full max-h-80 object-cover"
 								/>
@@ -222,27 +293,26 @@ export default function PostCard({
 
 					{/* Thanh tương tác Bottom */}
 					<div className="flex items-center justify-between mt-3 pt-1 text-muted-foreground text-xs">
-						{/* Nhóm Nút bên trái: Remind me + Share */}
 						<div className="flex items-center gap-2">
+							{/* Nút Bật nhắc nhở (Đã khóa tương tác khi isReminded = true) */}
 							<button
 								type="button"
 								onClick={handleRemindMe}
-								disabled={isFollowLoading}
-								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition font-semibold text-xs ${
-									isFollowing
-										? 'bg-primary/10 text-primary border border-primary/20'
+								disabled={isLoadingReminder || isReminded}
+								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition font-semibold text-xs ${isReminded
+										? 'bg-primary/10 text-primary border border-primary/20 opacity-90 cursor-not-allowed'
 										: 'hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border'
-								}`}
+									}`}
 							>
-								{isFollowing ? (
+								{isReminded ? (
 									<BellRing className="w-3.5 h-3.5 fill-primary text-primary" />
 								) : (
 									<Bell className="w-3.5 h-3.5" />
 								)}
-								<span>{isFollowing ? 'Đã bật nhắc nhở' : 'Bật nhắc nhở'}</span>
+								<span>{isReminded ? 'Đã bật nhắc nhở' : 'Bật nhắc nhở'}</span>
 							</button>
 
-							{/* Nút Chia sẻ (Copy Link) */}
+							{/* Nút Chia sẻ */}
 							<button
 								type="button"
 								onClick={handleShare}
@@ -253,7 +323,6 @@ export default function PostCard({
 							</button>
 						</div>
 
-						{/* Nút "Đăng ký ngay" (Chỉ hiện khi có action_url) */}
 						{post.action_url && (
 							<a
 								href={post.action_url}
@@ -272,9 +341,18 @@ export default function PostCard({
 
 			{/* Toast thông báo */}
 			{toastMessage && (
-				<div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 bg-zinc-900 border border-zinc-700 text-white px-4 py-2.5 rounded-full text-sm font-semibold shadow-2xl flex items-center gap-2 transition-all duration-200 animate-in fade-in slide-in-from-top-3">
-					<CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-					<span>{toastMessage}</span>
+				<div
+					className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-sm font-semibold shadow-2xl flex items-center gap-2 transition-all duration-200 animate-in fade-in slide-in-from-top-3 ${toastMessage.type === 'error'
+							? 'bg-zinc-900 border border-zine-700 text-white'
+							: 'bg-zinc-900 border border-zinc-700 text-white'
+						}`}
+				>
+					{toastMessage.type === 'error' ? (
+						<AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+					) : (
+						<CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+					)}
+					<span>{toastMessage.message}</span>
 				</div>
 			)}
 		</article>

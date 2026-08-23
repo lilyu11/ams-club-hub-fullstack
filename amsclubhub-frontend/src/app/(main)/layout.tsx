@@ -15,24 +15,24 @@ export default function MainLayout({
 
 	return (
 		<div className="flex min-h-screen justify-center bg-background text-foreground">
-			{/* Container giới hạn chiều rộng tối đa của toàn bộ trang */}
-			<div className="flex w-full max-w-[1280px] justify-between">
+			{/* Đổi justify-between -> justify-center và max-w-[1176px] để 3 cột ép sát nhau */}
+			<div className="flex w-full max-w-[1176px] justify-center">
 				
 				{/* Thanh bên trái - Cố định khi cuộn trang */}
 				<aside className="sticky top-0 h-screen w-16 xl:w-64 shrink-0 border-r border-border p-4">
 					<SidebarLeft />
 				</aside>
 
-				{/* Cột nội dung ở giữa - Mở rộng tràn khung khi ở /clubs */}
+				{/* Cột nội dung ở giữa */}
 				<main
-					className={`min-h-screen flex-1 border-r border-border transition-all duration-200 ${
+					className={`min-h-screen flex-1 flex flex-col border-r border-border transition-all duration-200 w-full ${
 						isClubsPage || isEventsPage ? 'max-w-none' : 'max-w-[600px]'
 					}`}
 				>
 					{children}
 				</main>
 
-				{/* Thanh bên phải - Ẩn đi khi truy cập trang /clubs */}
+				{/* Thanh bên phía phải - Ẩn đi khi truy cập trang /clubs hoặc /events */}
 				{!(isClubsPage || isEventsPage) && (
 					<aside className="sticky top-0 hidden h-screen w-80 shrink-0 p-4 lg:block">
 						<SidebarRight />

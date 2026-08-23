@@ -4,7 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from app.core.config import settings
 
 
-def send_reminder_email(to_email: str, user_name: str, post_title: str, club_name: str, deadline_str: str, action_url: str):
+async def send_reminder_email(to_email: str, user_name: str, post_title: str, club_name: str, deadline_str: str, action_url: str):
 	# Hàm gửi Email nhắc nhở HTML qua Gmail SMTP
 	if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
 		print(f"[Warning] Chưa cấu hình SMTP_USER / SMTP_PASSWORD trong .env. Bỏ qua gửi mail tới {to_email}")

@@ -159,7 +159,7 @@ export default function HomePage() {
 				key={post.id}
 				post={post}
 				isFollowedInitial={followedClubIds.has(post.club_id)}
-				canEditClub={false} // Trang chủ không cho sửa/xóa bài
+				canEditClub={false}
 				/>
 			))}
 			</div>

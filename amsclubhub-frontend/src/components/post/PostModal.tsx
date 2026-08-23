@@ -29,7 +29,7 @@ interface PostModalProps {
 	setEventDuration: (val: string) => void;
 	submitting: boolean;
 	onSubmit: (e: React.SyntheticEvent<HTMLFormElement>) => void;
-	triggerToast?: (message: string, type?: 'success' | 'error') => void;
+	showToast?: (message: string, type?: 'success' | 'error') => void;
 }
 
 export default function PostModal({

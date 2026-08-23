@@ -24,7 +24,10 @@ class CampaignPostCreate(CampaignPostBase):
 class CampaignPostUpdate(BaseModel):
 	title: Optional[str] = None
 	content: Optional[str] = None
+	fb_post_url: Optional[str] = None
 	image_url: Optional[str] = None
+	action_url: Optional[str] = None
+	deadline: Optional[str] = None
 
 
 # Schema dữ liệu bài viết trả về cho client

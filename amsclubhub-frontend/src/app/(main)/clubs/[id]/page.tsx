@@ -14,7 +14,7 @@ import PostModal from '@/components/post/PostModal';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { FileText, PlusCircle, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { PlusCircle, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 // Ảnh mặc định an toàn
 const DEFAULT_BANNER = 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&h=400&auto=format&fit=crop&q=80';
@@ -32,11 +32,11 @@ export default function ClubDetailPage() {
 	// 1. Quản lý State Toast ở File Cha
 	const [toastConfig, setToastConfig] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
 
-	const triggerToast = (message: string, type: 'success' | 'error' = 'success') => {
+	const showToast = (message: string, type: 'success' | 'error' = 'success') => {
 		setToastConfig({ message, type });
 		setTimeout(() => {
 			setToastConfig(null);
-		}, 3000);
+		}, 2500);
 	};
 
 	const params = useParams();
@@ -77,6 +77,7 @@ export default function ClubDetailPage() {
 	const [clubFormData, setClubFormData] = useState({
 		name: '',
 		description: '',
+		code: '',
 		category: '',
 		logo_url: '',
 		banner_url: '',
@@ -88,6 +89,7 @@ export default function ClubDetailPage() {
 	const mapRawDataToForm = (data: any) => ({
 		name: data?.name || '',
 		description: data?.description || '',
+		code: data?.code || '',
 		category: data?.category || '',
 		logo_url: data?.logo_url || '',
 		banner_url: data?.banner_url || data?.banner_urls?.[0] || '',
@@ -97,13 +99,6 @@ export default function ClubDetailPage() {
 
 	useEffect(() => {
 		if (!clubId) return;
-
-		const token = localStorage.getItem('access_token');
-		if (!token) {
-			router.push('/login');
-			return;
-		}
-
 		const initData = async () => {
 			try {
 				// Tải thông tin người dùng hiện tại
@@ -164,14 +159,20 @@ export default function ClubDetailPage() {
 
 	// Phân quyền
 	const userRole = currentUser?.role?.toLowerCase();
-	const isSuperAdmin = userRole === 'super_admin' || userRole === 'admin';
+	const isSuperAdmin = userRole === 'super_admin';
 	const isCurrentClubAdmin =
-		(userRole === 'club_admin' || userRole === 'admin') &&
+		(userRole === 'club_admin') &&
 		String(currentUser?.club_id) === String(clubId);
 	const canEditClub = isSuperAdmin || isCurrentClubAdmin;
 
 	// Toggle Follow (Bật thông báo)
 	const handleToggleFollow = async () => {
+		const token = localStorage.getItem('access_token');
+		if (!token) {
+			showToast('Vui lòng đăng nhập để bật thông báo!', 'error');
+			return;
+		}
+
 		const prevStatus = isFollowing;
 		setIsFollowing(!prevStatus);
 		try {
@@ -190,6 +191,7 @@ export default function ClubDetailPage() {
 			const payload = {
 				name: clubFormData.name?.trim() || '',
 				category: clubFormData.category?.trim() || '',
+				code: clubFormData.code?.trim()|| '',
 				description: clubFormData.description?.trim() || '',
 				logo_url: clubFormData.logo_url?.trim() || '',
 				banner_url: clubFormData.banner_url?.trim() || '',
@@ -199,7 +201,7 @@ export default function ClubDetailPage() {
 
 			const response = await api.put(`/clubs/${club.id}`, payload);
 			if (response.status === 200 || response.status === 201) {
-				triggerToast('Cập nhật thông tin CLB thành công!');
+				showToast('Cập nhật thông tin CLB thành công!', 'success');
 
 				let rawUpdated = response.data;
 				try {
@@ -235,7 +237,7 @@ export default function ClubDetailPage() {
 			}
 		} catch (err: any) {
 			console.error('Lỗi khi cập nhật CLB:', err);
-			triggerToast(`Cập nhật thất bại: ${err?.response?.data?.detail || err.message || 'Lỗi kết nối'}`);
+			showToast(`Cập nhật thất bại: ${err?.response?.data?.detail || err.message || 'Lỗi kết nối'}`, 'error');
 		}
 	};
 
@@ -305,12 +307,12 @@ export default function ClubDetailPage() {
 			if (editingPost) {
 				const res = await api.put(`/posts/${editingPost.id}`, payload);
 				setPosts((prev) => prev.map((p) => (p.id === editingPost.id ? res.data : p)));
-				triggerToast('Cập nhật bài viết thành công!', 'success');
+				showToast('Cập nhật bài viết thành công!', 'success');
 			} else {
 				await api.post(`/clubs/${clubId}/posts`, payload);
 				const postsRes = await api.get('/posts', { params: { club_identifier: clubId } });
 				setPosts(Array.isArray(postsRes.data) ? postsRes.data : postsRes.data?.items || []);
-				triggerToast('Đăng bài thành công!', 'success');
+				showToast('Đăng bài thành công!', 'success');
 			}
 
 			setPostTitle('');
@@ -322,7 +324,7 @@ export default function ClubDetailPage() {
 			setEventDuration('');
 			setEditingPost(null);
 		} catch (err) {
-			triggerToast('Có lỗi xảy ra khi lưu bài đăng.', 'error');
+			showToast('Có lỗi xảy ra khi lưu bài đăng.', 'error');
 		} finally {
 			setSubmitting(false);
 		}
@@ -345,10 +347,10 @@ export default function ClubDetailPage() {
 			// Cập nhật lại danh sách bài viết trên UI
 			setPosts((prev) => prev.filter((p) => p.id !== postToDelete.id));
 
-			triggerToast('Đã xóa bài viết thành công!', 'success');
+			showToast('Đã xóa bài viết thành công!', 'success');
 		} catch (err) {
 			console.error(err);
-			triggerToast('Không thể xóa bài viết. Vui lòng thử lại!', 'error');
+			showToast('Không thể xóa bài viết. Vui lòng thử lại!', 'error');
 		} finally {
 			setIsDeleting(false);
 			setPostToDelete(null);
@@ -495,7 +497,7 @@ export default function ClubDetailPage() {
 					formData={clubFormData}
 					setFormData={setClubFormData}
 					onSubmit={handleSaveClubProfile}
-					triggerToast={triggerToast}
+					showToast={showToast}
 				/>
 			)}
 
@@ -520,7 +522,7 @@ export default function ClubDetailPage() {
 				setEventDuration={setEventDuration}
 				submitting={submitting}
 				onSubmit={handleCreateOrUpdatePost}
-				triggerToast={triggerToast}
+				showToast={showToast}
 			/>
 
 			{/* Modal Xác nhận xóa bài viết */}
@@ -562,7 +564,7 @@ export default function ClubDetailPage() {
 			{toastConfig && (
 				<div
 					className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-full text-sm font-semibold shadow-2xl flex items-center gap-2 border transition-all duration-200 animate-in fade-in slide-in-from-top-3 ${toastConfig.type === 'error'
-							? 'bg-zinc-900 border-red-500/30 text-red-400'
+							? 'bg-zinc-900 border-zinc-700 text-white'
 							: 'bg-zinc-900 border-zinc-700 text-white'
 						}`}
 				>
