@@ -281,13 +281,13 @@ export default function PostCard({
 						)}
 
 						{post.image_url && (
-							<div className="mt-2.5 rounded-2xl overflow-hidden border border-border">
-								<img
-									src={post.image_url}
-									alt="Post Attachment"
-									className="w-full max-h-80 object-cover"
-								/>
-							</div>
+						<div className="mt-2.5 rounded-2xl overflow-hidden border border-border flex items-center justify-center bg-muted/30">
+							<img
+							src={post.image_url}
+							alt="Post Attachment"
+							className="w-full h-auto max-h-[500px] object-cover"
+							/>
+						</div>
 						)}
 					</Link>
 

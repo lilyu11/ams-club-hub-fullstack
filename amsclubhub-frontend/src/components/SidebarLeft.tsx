@@ -1,56 +1,53 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { 
-	Home, 
-	Compass, 
-	Bell, 
-	Settings, 
+import {
+	Home,
+	Compass,
+	Bell,
+	Settings,
 	Sparkles,
 	Flame,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
-	{ name: 'Trang chủ', href: '/', icon: Home, requireAuth: false },
-	{ name: 'Câu lạc bộ', href: '/clubs', icon: Compass, requireAuth: false },
-	{ name: 'Sự kiện', href: '/events', icon: Flame, requireAuth: true },
-	{ name: 'Thông báo', href: '/notifications', icon: Bell, requireAuth: true },
-	{ name: 'Cài đặt', href: '/settings', icon: Settings, requireAuth: false },
+	{ name: 'Trang chủ', href: '/', icon: Home },
+	{ name: 'Câu lạc bộ', href: '/clubs', icon: Compass },
+	{ name: 'Sự kiện', href: '/events', icon: Flame },
+	{ name: 'Thông báo', href: '/notifications', icon: Bell },
+	{ name: 'Cài đặt', href: '/settings', icon: Settings },
 ];
 
-export default function SidebarLeft() {
+interface SidebarLeftProps {
+	isMobile?: boolean;
+}
+
+export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 	const pathname = usePathname();
-	const router = useRouter();
 	const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
-	// Kiểm tra trạng thái đăng nhập từ localStorage khi component mount
 	useEffect(() => {
-		// Tự động kiểm tra token
 		const token = localStorage.getItem('token') || localStorage.getItem('access_token');
 		setIsLoggedIn(!!token);
-	}, [pathname]); // Check lại mỗi khi đổi route
-
-	// Xử lý bấm vào menu yêu cầu đăng nhập EDITING
-	// const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, item: typeof NAV_ITEMS[0]) => {
-	// 	if (item.requireAuth && !isLoggedIn) {
-	// 		e.preventDefault(); // Chặn không cho sang trang khác ở navigation
-	// 		router.push('/login'); // Chuyển hướng về trang đăng nhập
-	// 	}
-	// };
+	}, [pathname]);
 
 	return (
 		<div className="flex flex-col justify-between h-full py-2">
-			{/* Logo & Navigation Links */}
 			<div className="space-y-6">
-				{/* Logo AmsClubHub */}
-				<Link href="/" className="flex items-center gap-3 px-3 text-primary font-black text-2xl tracking-tight hover:opacity-90 transition">
-					<Sparkles className="w-7 h-7 fill-primary" />
-					<span className="hidden xl:inline">AmsClubHub</span>
-				</Link>
+				{/* Trên Mobile đã có logo ở Header Drawer nên ẩn phần logo này đi */}
+				{!isMobile && (
+					<Link
+						href="/"
+						className="flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-3 text-primary font-black text-2xl tracking-tight hover:opacity-90 transition"
+					>
+						<Sparkles className="w-7 h-7 shrink-0 fill-primary" />
+						<span className="hidden lg:inline">AmsClubHub</span>
+					</Link>
+				)}
 
-				{/* Menu Điều Hướng */}
+				{/* Menu điều hướng */}
 				<nav className="space-y-1">
 					{NAV_ITEMS.map((item) => {
 						const Icon = item.icon;
@@ -60,15 +57,16 @@ export default function SidebarLeft() {
 							<Link
 								key={item.href}
 								href={item.href}
-								// onClick={(e) => handleNavClick(e, item)}
-								className={`flex items-center gap-4 px-3 py-3 rounded-full text-base font-medium transition-colors ${
-									isActive
+								className={`flex items-center gap-4 px-3 py-3 rounded-full text-base font-medium transition-colors ${isMobile ? 'justify-start' : 'justify-center lg:justify-start'
+									} ${isActive
 										? 'font-bold text-foreground bg-muted/60'
 										: 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-								}`}
+									}`}
 							>
-								<Icon className={`w-6 h-6 ${isActive ? 'text-primary stroke-[2.5]' : ''}`} />
-								<span className="hidden xl:inline">{item.name}</span>
+								<Icon className={`w-6 h-6 shrink-0 ${isActive ? 'text-primary stroke-[2.5]' : ''}`} />
+								<span className={isMobile ? 'inline' : 'hidden lg:inline'}>
+									{item.name}
+								</span>
 							</Link>
 						);
 					})}

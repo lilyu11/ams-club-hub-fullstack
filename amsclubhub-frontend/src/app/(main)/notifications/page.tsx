@@ -10,6 +10,11 @@ import {
 	Loader2,
 	Lock,
 	LogIn,
+	Trash2,
+	X,
+	CheckSquare,
+	Square,
+	AlertTriangle,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -43,6 +48,12 @@ export default function NotificationsPage() {
 
 	const [notifications, setNotifications] = useState<NotificationDisplayItem[]>([]);
 	const [loading, setLoading] = useState<boolean>(true);
+
+	// State quản lý chọn & xóa reminder
+	const [isSelectMode, setIsSelectMode] = useState<boolean>(false);
+	const [selectedPostIds, setSelectedPostIds] = useState<string[]>([]);
+	const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState<boolean>(false);
+	const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
 	// Kiểm tra token khi vừa truy cập trang
 	useEffect(() => {
@@ -216,9 +227,56 @@ export default function NotificationsPage() {
 		}
 	}, [isAuthenticated, fetchAllNotifications]);
 
-	const handleCardClick = (link: string) => {
-		if (link && link !== '#') {
-			router.push(link);
+	// Các hàm xử lý chọn và xóa reminder
+	const handleStartSelectMode = () => {
+		setActiveTab('reminders');
+		setIsSelectMode(true);
+		setSelectedPostIds([]);
+	};
+
+	const handleCancelSelectMode = () => {
+		setIsSelectMode(false);
+		setSelectedPostIds([]);
+	};
+
+	const toggleSelectReminder = (postId?: string) => {
+		if (!postId) return;
+		setSelectedPostIds((prev) =>
+			prev.includes(postId) ? prev.filter((id) => id !== postId) : [...prev, postId]
+		);
+	};
+
+	const handleConfirmDelete = async () => {
+		if (selectedPostIds.length === 0) return;
+
+		setIsDeleting(true);
+		try {
+			// Gọi API xóa từng reminder đã chọn
+			await Promise.all(
+				selectedPostIds.map((postId) => api.delete(`/posts/${postId}/remind`))
+			);
+			
+			// Reset trạng thái và tải lại dữ liệu mới
+			setIsConfirmDialogOpen(false);
+			setIsSelectMode(false);
+			setSelectedPostIds([]);
+			await fetchAllNotifications();
+		} catch (error) {
+			console.error('Lỗi khi xóa nhắc nhở:', error);
+		} finally {
+			setIsDeleting(false);
+		}
+	};
+
+	const handleCardClick = (item: NotificationDisplayItem) => {
+		// Nếu đang ở chế độ chọn và item là reminder thì toggle chọn
+		if (isSelectMode && item.type === 'reminder') {
+			toggleSelectReminder(item.postId);
+			return;
+		}
+		// Ngược lại thì chuyển hướng bình thường
+		if (item.link && item.link !== '#') {
+			router.push(item.link);
 		}
 	};
 
@@ -228,7 +286,7 @@ export default function NotificationsPage() {
 		return true;
 	});
 
-	// Hiển thị Loading khi đang kiểm tra Auth ban đầu
+	// Hiển thị loading khi đang kiểm tra Auth ban đầu
 	if (isAuthenticated === null) {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-[60vh]">
@@ -237,7 +295,7 @@ export default function NotificationsPage() {
 		);
 	}
 
-	// Giao diện Guest dành cho người dùng CHƯA ĐĂNG NHẬP
+	// Giao diện Guest dành cho NGƯỜI DÙNG CHƯA ĐĂNG NHẬP
 	if (!isAuthenticated) {
 		return (
 			<div className="flex-1 w-full flex flex-col items-center justify-start pt-12 sm:pt-16 px-4 text-center">
@@ -273,10 +331,10 @@ export default function NotificationsPage() {
 		);
 	}
 
-	// 5. Giao diện chính cho NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
+	// Giao diện chính cho NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
 	return (
-		<div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6 min-h-screen pb-20">
-			{/* Header Trang */}
+		<div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6 min-h-screen pb-20 relative">
+			{/* Header */}
 			<div className="flex items-center gap-3">
 				<div className="p-2.5 bg-primary/10 text-primary rounded-2xl">
 					<Bell className="w-6 h-6" />
@@ -299,11 +357,11 @@ export default function NotificationsPage() {
 						<h3 className="text-sm font-bold text-foreground flex items-center gap-2">
 							Tự động đặt nhắc nhở
 							<span className="px-2 py-0.5 text-[10px] bg-primary/20 text-primary rounded-full font-semibold">
-								Bật tự động
+								Nên dùng
 							</span>
 						</h3>
 						<p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-							Tự động đăng ký lịch nhắc nhở gửi về email cho bài viết mới có deadline từ các CLB bạn đã theo dõi.
+							Tự động đăng ký lịch nhắc nhở gửi về email cho sự kiện / đơn tuyển thành viên mới từ các câu lạc bộ bạn đã theo dõi.
 						</p>
 					</div>
 				</div>
@@ -319,43 +377,90 @@ export default function NotificationsPage() {
 				</label>
 			</div>
 
-			{/* Tabs Bộ lọc */}
-			<div className="flex items-center justify-between border-b border-border pb-3">
+			{/* Tabs Bộ lọc & Nút Xóa Reminder (Góc phải) */}
+			<div className="flex items-center justify-between h-9 border-b border-border pb-3">
 				<div className="flex items-center gap-2">
 					<button
 						type="button"
-						onClick={() => setActiveTab('all')}
-						className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${activeTab === 'all'
+						onClick={() => {
+							setActiveTab('all');
+							if (isSelectMode) handleCancelSelectMode();
+						}}
+						className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${
+							activeTab === 'all'
 								? 'bg-primary text-primary-foreground shadow-sm'
 								: 'bg-muted/60 text-muted-foreground hover:text-foreground'
-							}`}
+						}`}
 					>
 						Tất cả ({notifications.length})
 					</button>
 					<button
 						type="button"
-						onClick={() => setActiveTab('posts')}
-						className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${activeTab === 'posts'
+						onClick={() => {
+							setActiveTab('posts');
+							if (isSelectMode) handleCancelSelectMode();
+						}}
+						className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${
+							activeTab === 'posts'
 								? 'bg-primary text-primary-foreground shadow-sm'
 								: 'bg-muted/60 text-muted-foreground hover:text-foreground'
-							}`}
+						}`}
 					>
 						Bài viết mới ({notifications.filter((n) => n.type === 'club_post').length})
 					</button>
 					<button
 						type="button"
 						onClick={() => setActiveTab('reminders')}
-						className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${activeTab === 'reminders'
+						className={`px-3.5 py-1.5 text-xs font-semibold rounded-xl transition-all ${
+							activeTab === 'reminders'
 								? 'bg-primary text-primary-foreground shadow-sm'
 								: 'bg-muted/60 text-muted-foreground hover:text-foreground'
-							}`}
+						}`}
 					>
 						Lịch nhắc nhở ({notifications.filter((n) => n.type === 'reminder').length})
 					</button>
 				</div>
+
+				{/* Nút hành động Xóa nằm ở góc phải */}
+				<div className="flex items-center gap-2">
+					{!isSelectMode ? (
+						<button
+							type="button"
+							onClick={handleStartSelectMode}
+							title="Xóa lịch nhắc nhở"
+							className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+						>
+							<Trash2 className="w-4 h-4" />
+						</button>
+					) : (
+						<div className="flex items-center gap-1.5 animate-in fade-in duration-200">
+							<button
+								type="button"
+								onClick={handleCancelSelectMode}
+								className="p-1.5 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-xl transition-all flex items-center gap-1"
+							>
+								<X className="w-4 h-4" />
+								<span className="hidden sm:inline">Hủy</span>
+							</button>
+							<button
+								type="button"
+								disabled={selectedPostIds.length === 0}
+								onClick={() => setIsConfirmDialogOpen(true)}
+								className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all flex items-center gap-1.5 ${
+									selectedPostIds.length > 0
+										? 'bg-red-600 hover:bg-red-700 text-white shadow-sm'
+										: 'bg-red-600/50 text-white/70 cursor-not-allowed'
+								}`}
+							>
+								<Trash2 className="w-3.5 h-3.5" />
+								<span>Xóa {selectedPostIds.length > 0 ? `(${selectedPostIds.length})` : ''}</span>
+							</button>
+						</div>
+					)}
+				</div>
 			</div>
 
-			{/* Trạng Thái loading */}
+			{/* Trạng thái loading */}
 			{loading ? (
 				<div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
 					<Loader2 className="w-8 h-8 animate-spin text-primary mb-2" />
@@ -375,12 +480,22 @@ export default function NotificationsPage() {
 				<div className="space-y-3">
 					{filteredNotifications.map((item) => {
 						const isItemNew = isNew(item.rawDate);
+						const isSelected = !!item.postId && selectedPostIds.includes(item.postId);
+						const isReminder = item.type === 'reminder';
+
 						return (
 							<div
 								key={item.id}
-								onClick={() => handleCardClick(item.link)}
-								className="group relative p-4 rounded-2xl border transition-all duration-200 flex items-start gap-4 cursor-pointer bg-card border-border hover:border-primary/40 hover:shadow-sm pr-10"
+								onClick={() => handleCardClick(item)}
+								className={`group relative p-4 rounded-2xl border transition-all duration-200 flex items-start gap-4 cursor-pointer bg-card pr-10 ${
+									isSelectMode && isReminder
+										? isSelected
+											? 'border-dashed border-red-500 bg-red-500/10 shadow-sm'
+											: 'border-dashed border-border hover:border-red-400/50'
+										: 'border-solid border-border hover:border-primary/40 hover:shadow-sm'
+								}`}
 							>
+
 								<div className="relative shrink-0 mt-0.5">
 									<img
 										src={item.clubLogo || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&auto=format&fit=crop&q=80'}
@@ -388,10 +503,11 @@ export default function NotificationsPage() {
 										className="w-11 h-11 rounded-full object-cover border border-border"
 									/>
 									<div
-										className={`absolute -bottom-1 -right-1 p-1 rounded-full border border-card ${item.type === 'reminder'
+										className={`absolute -bottom-1 -right-1 p-1 rounded-full border border-card ${
+											item.type === 'reminder'
 												? 'bg-amber-500 text-white'
 												: 'bg-primary text-primary-foreground'
-											}`}
+										}`}
 									>
 										{item.type === 'reminder' ? (
 											<Clock className="w-3 h-3" />
@@ -415,7 +531,7 @@ export default function NotificationsPage() {
 									</div>
 								</div>
 
-								{isItemNew && (
+								{isItemNew && !isSelectMode && (
 									<div
 										className="absolute top-3.5 right-3.5 text-amber-400 animate-pulse"
 										title="Mới đăng"
@@ -426,6 +542,50 @@ export default function NotificationsPage() {
 							</div>
 						);
 					})}
+				</div>
+			)}
+
+			{/* Dialog xác nhận xóa reminder */}
+			{isConfirmDialogOpen && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+					<div className="bg-card border border-border w-full max-w-sm rounded-2xl p-5 shadow-2xl space-y-4">
+						<div className="flex items-center gap-3 text-red-500">
+							<div className="p-2.5 bg-red-500/10 rounded-xl">
+								<AlertTriangle className="w-6 h-6" />
+							</div>
+							<h3 className="font-bold text-base text-foreground">
+								Xóa {' '}
+								<span className="font-bold text-foreground">
+									{selectedPostIds.length}
+								</span>{' '}
+								nhắc nhở?
+							</h3>
+						</div>
+
+						<p className="text-sm text-muted-foreground leading-relaxed">
+							Bạn sẽ không còn nhận được email nhắc lịch cho sự kiện / bài viết này nữa.
+						</p>
+
+						<div className="flex items-center gap-2 pt-2 justify-end">
+							<button
+								type="button"
+								disabled={isDeleting}
+								onClick={() => setIsConfirmDialogOpen(false)}
+								className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:bg-muted rounded-xl transition-all"
+							>
+								Hủy bỏ
+							</button>
+							<button
+								type="button"
+								disabled={isDeleting}
+								onClick={handleConfirmDelete}
+								className="px-4 py-2 text-xs font-semibold bg-red-600 hover:bg-red-700 text-white rounded-xl transition-all flex items-center gap-2 shadow-sm"
+							>
+								{isDeleting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+								Xác nhận xóa
+							</button>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>
