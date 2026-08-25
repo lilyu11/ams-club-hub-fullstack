@@ -10,6 +10,7 @@ import {
 	Settings,
 	Sparkles,
 	Flame,
+	CircleUser,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -17,6 +18,7 @@ const NAV_ITEMS = [
 	{ name: 'Câu lạc bộ', href: '/clubs', icon: Compass },
 	{ name: 'Sự kiện', href: '/events', icon: Flame },
 	{ name: 'Thông báo', href: '/notifications', icon: Bell },
+	{ name: 'Hồ sơ', href: '/profile', icon: CircleUser },
 	{ name: 'Cài đặt', href: '/settings', icon: Settings },
 ];
 

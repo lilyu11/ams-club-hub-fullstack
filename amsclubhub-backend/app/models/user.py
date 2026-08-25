@@ -25,7 +25,7 @@ class User(Base):
 	email = Column(String(255), unique=True, nullable=False, index=True)
 	hashed_password = Column(String(255), nullable=False)
 	full_name = Column(String(100), nullable=False)
-	role = Column(SQLEnum(UserRole), default=UserRole.STUDENT, nullable=False)
+	role = Column(SQLEnum(UserRole, name="userrole"), default=UserRole.STUDENT, nullable=False)
 	phone_number = Column(String(20), nullable=True)
 	is_active = Column(Boolean, default=True, nullable=False)
 	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

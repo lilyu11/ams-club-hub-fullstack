@@ -281,33 +281,33 @@ export default function PostCard({
 						)}
 
 						{post.image_url && (
-						<div className="mt-2.5 rounded-2xl overflow-hidden border border-border flex items-center justify-center bg-muted/30">
-							<img
-							src={post.image_url}
-							alt="Post Attachment"
-							className="w-full h-auto max-h-[500px] object-cover"
-							/>
-						</div>
+							<div className="mt-2.5 rounded-2xl overflow-hidden border border-border flex items-center justify-center bg-muted/30">
+								<img
+									src={post.image_url}
+									alt="Post Attachment"
+									className="w-full h-auto max-h-[500px] object-cover"
+								/>
+							</div>
 						)}
 					</Link>
 
 					{/* Thanh tương tác Bottom */}
-					<div className="flex items-center justify-between mt-3 pt-1 text-muted-foreground text-xs">
-						<div className="flex items-center gap-2">
-							{/* Nút Bật nhắc nhở (Đã khóa tương tác khi isReminded = true) */}
+					<div className="flex items-center justify-between mt-3 pt-1 text-muted-foreground text-xs gap-2">
+						<div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+							{/* Nút Bật nhắc nhở */}
 							<button
 								type="button"
 								onClick={handleRemindMe}
 								disabled={isLoadingReminder || isReminded}
-								className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition font-semibold text-xs ${isReminded
+								className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full transition font-medium sm:font-semibold text-[11px] sm:text-xs whitespace-nowrap shrink-0 ${isReminded
 										? 'bg-primary/10 text-primary border border-primary/20 opacity-90 cursor-not-allowed'
 										: 'hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border'
 									}`}
 							>
 								{isReminded ? (
-									<BellRing className="w-3.5 h-3.5 fill-primary text-primary" />
+									<BellRing className="w-3.5 h-3.5 fill-primary text-primary shrink-0" />
 								) : (
-									<Bell className="w-3.5 h-3.5" />
+									<Bell className="w-3.5 h-3.5 shrink-0" />
 								)}
 								<span>{isReminded ? 'Đã bật nhắc nhở' : 'Bật nhắc nhở'}</span>
 							</button>
@@ -317,7 +317,7 @@ export default function PostCard({
 								type="button"
 								onClick={handleShare}
 								title="Chia sẻ bài viết"
-								className="p-1.5 rounded-full border border-border hover:bg-muted hover:text-foreground text-muted-foreground transition"
+								className="p-1 sm:p-1.5 rounded-full border border-border hover:bg-muted hover:text-foreground text-muted-foreground transition shrink-0"
 							>
 								<Share2 className="w-3.5 h-3.5" />
 							</button>
@@ -329,10 +329,10 @@ export default function PostCard({
 								target="_blank"
 								rel="noopener noreferrer"
 								onClick={(e) => e.stopPropagation()}
-								className="flex items-center gap-1.5 bg-primary text-primary-foreground font-bold px-3.5 py-1.5 rounded-full text-xs hover:opacity-90 transition shadow-sm"
+								className="flex items-center gap-1 sm:gap-1.5 bg-primary text-primary-foreground font-semibold sm:font-bold px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[11px] sm:text-xs hover:opacity-90 transition shadow-sm whitespace-nowrap shrink-0"
 							>
 								<span>Đăng ký ngay</span>
-								<ExternalLink className="w-3.5 h-3.5" />
+								<ExternalLink className="w-3.5 h-3.5 shrink-0" />
 							</a>
 						)}
 					</div>
@@ -343,8 +343,8 @@ export default function PostCard({
 			{toastMessage && (
 				<div
 					className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full text-sm font-semibold shadow-2xl flex items-center gap-2 transition-all duration-200 animate-in fade-in slide-in-from-top-3 ${toastMessage.type === 'error'
-							? 'bg-zinc-900 border border-zine-700 text-white'
-							: 'bg-zinc-900 border border-zinc-700 text-white'
+						? 'bg-zinc-900 border border-zine-700 text-white'
+						: 'bg-zinc-900 border border-zinc-700 text-white'
 						}`}
 				>
 					{toastMessage.type === 'error' ? (

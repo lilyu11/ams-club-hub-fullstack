@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
 
 // Maskot
-import pigeonImg from './pigeon.png'; 
+import pigeonImg from './pigeon.png';
 
 type AuthMode = 'login' | 'register' | 'forgot';
 type AuthStep = 'form' | 'otp';
@@ -20,11 +20,11 @@ interface FeedbackState {
 }
 
 const IDLE_MESSAGES = [
-  'Xin chào người đẹp ~ *Nhìn chằm chằm*',
-  'Cậu ăn cơm chưa..?',
-  'Nếu cần hỗ trợ, hãy gọi tôi và cầm ít bánh mì',
-  'Yên tâm, mình không nhìn trộm mật khẩu đâu ~',
-  'Nhìn gì mà nhìn ? Ai cho mà nhìn ?',
+	'Xin chào người đẹp ~ *Nhìn chằm chằm*',
+	'Cậu ăn cơm chưa..?',
+	'Nếu cần hỗ trợ, hãy gọi tôi và cầm ít bánh mì',
+	'Yên tâm, mình không nhìn trộm mật khẩu đâu ~',
+	'Nhìn gì mà nhìn ? Ai cho mà nhìn ?',
 ];
 
 export default function AuthPage() {
@@ -53,30 +53,30 @@ export default function AuthPage() {
 	});
 
 	useEffect(() => {
-  // TH1: Khi ở trạng thái rảnh (idle) -> Xoay vòng đổi câu thoại mỗi 10 giây
-  if (feedback.type === 'idle') {
-    const interval = setInterval(() => {
-      setFeedback((prev) => {
-        // Lấy ngẫu nhiên 1 câu thoại khác câu hiện tại
-        const otherMessages = IDLE_MESSAGES.filter((m) => m !== prev.text);
-        const randomText = otherMessages[Math.floor(Math.random() * otherMessages.length)];
-        
-        return { type: 'idle', text: randomText };
-      });
-    }, 10000);
+		// TH1: Khi ở trạng thái rảnh (idle) -> Xoay vòng đổi câu thoại mỗi 10 giây
+		if (feedback.type === 'idle') {
+			const interval = setInterval(() => {
+				setFeedback((prev) => {
+					// Lấy ngẫu nhiên 1 câu thoại khác câu hiện tại
+					const otherMessages = IDLE_MESSAGES.filter((m) => m !== prev.text);
+					const randomText = otherMessages[Math.floor(Math.random() * otherMessages.length)];
 
-    return () => clearInterval(interval); // dọn dẹp timer khi unmount hoặc đổi state
-  }
+					return { type: 'idle', text: randomText };
+				});
+			}, 10000);
 
-  // TH2: Khi có thông báo Lỗi hoặc Thành công -> Chờ 5s rồi reset về idle
-  const timeout = setTimeout(() => {
-    setFeedback({
-      type: 'idle',
-      text: IDLE_MESSAGES[0], // Quay lại câu thoại đầu tiên
-    });
-  }, 5000);
+			return () => clearInterval(interval); // dọn dẹp timer khi unmount hoặc đổi state
+		}
 
-  return () => clearTimeout(timeout);
+		// TH2: Khi có thông báo Lỗi hoặc Thành công -> Chờ 5s rồi reset về idle
+		const timeout = setTimeout(() => {
+			setFeedback({
+				type: 'idle',
+				text: IDLE_MESSAGES[0], // Quay lại câu thoại đầu tiên
+			});
+		}, 5000);
+
+		return () => clearTimeout(timeout);
 	}, [feedback.type]); // Chỉ phụ thuộc vào feedback.type
 
 	// Hàm hỗ trợ gửi thông báo
@@ -93,7 +93,7 @@ export default function AuthPage() {
 		});
 	};
 
-	// Validate mật khẩu ở Frontend
+	// Validate mật khẩu ở frontend
 	const validatePassword = (pwd: string) => {
 		if (pwd.length < 8) return false;
 		if (/^\d+$/.test(pwd)) return false;
@@ -103,14 +103,35 @@ export default function AuthPage() {
 
 	// Validate tên
 	const validateFullName = (name: string) => {
-  const regex = /^[\p{L}\s]+$/u;
-  return regex.test(name.trim());
+		const regex = /^[\p{L}\s]+$/u;
+		return regex.test(name.trim());
+	};
+
+	// Validate email ở frontend
+	const validateEmail = (email: string) => {
+		const cleanEmail = email.trim();
+
+		if (!cleanEmail) return false;
+
+		const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+		if (!emailRegex.test(cleanEmail)) return false;
+
+		return true;
 	};
 
 	// Đăng nhập
 	const handleLogin = async (e: React.SyntheticEvent) => {
 		e.preventDefault();
 		setLoading(true);
+		if (!email) {
+			notify('error', 'Bạn quên điền email kìa..');
+			return;
+		}
+
+		if (!password) {
+			notify('error', 'Bạn không định điền mật khẩu hả..');
+			return;
+		}
 
 		try {
 			const formData = new URLSearchParams();
@@ -141,9 +162,24 @@ export default function AuthPage() {
 		}
 
 		if (!validateFullName(fullName)) {
-    notify('error', 'Họ và tên không được chứa số hoặc ký tự đặc biệt..');
-    return;
-  	}
+			notify('error', 'Họ và tên không được chứa số hoặc ký tự đặc biệt..');
+			return;
+		}
+
+		if (!email) {
+			notify('error', 'Bạn quên điền email kìa..');
+			return;
+		}
+
+		if (!validateEmail(email)) {
+			notify('error', 'Điền lại email cho đúng đi đã...')
+			return;
+		}
+
+		if (!password) {
+			notify('error', 'Bạn không định điền mật khẩu hả..');
+			return;
+		}
 
 		if (!validatePassword(password)) {
 			notify('error', 'Mật khẩu phải từ 8 ký tự, bao gồm cả chữ và số hoặc ký tự đặc biệt...');
@@ -228,7 +264,7 @@ export default function AuthPage() {
 	return (
 		<div className="flex min-h-screen items-center justify-center bg-black p-4 text-white">
 			<div className="w-full max-w-md space-y-5 rounded-3xl border border-zinc-800 bg-zinc-900/90 p-7 shadow-2xl backdrop-blur-md">
-				
+
 				{/* Header */}
 				<div className="text-center space-y-1">
 					<div className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-white">
@@ -282,25 +318,23 @@ export default function AuthPage() {
 
 					{/* Bong bóng thoại cố định chiều cao (min-h-[56px]) */}
 					<div
-						className={`relative w-fit max-w-[280px] min-w-[120px] min-h-[44px] px-4 py-2.5 rounded-2xl border text-xs font-medium flex items-center transition-all duration-300 ease-in-out ${
-							feedback.type === 'error'
-								? 'bg-red-950/40 border-red-500/40 text-red-300'
-								: feedback.type === 'success'
+						className={`relative w-fit max-w-[280px] min-w-[120px] min-h-[44px] px-4 py-2.5 rounded-2xl border text-xs font-medium flex items-center transition-all duration-300 ease-in-out ${feedback.type === 'error'
+							? 'bg-red-950/40 border-red-500/40 text-red-300'
+							: feedback.type === 'success'
 								? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
 								: 'bg-zinc-800/80 border-zinc-700/80 text-zinc-300'
-						}`}
+							}`}
 					>
 						{/* Mũi tên chỉ vào con chim */}
 						<div
-							className={`absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[8px] transition-all duration-300 ${
-								feedback.type === 'error'
-									? 'border-r-red-500/40'
-									: feedback.type === 'success'
+							className={`absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[8px] transition-all duration-300 ${feedback.type === 'error'
+								? 'border-r-red-500/40'
+								: feedback.type === 'success'
 									? 'border-r-emerald-500/40'
 									: 'border-r-zinc-700/80'
-							}`}
+								}`}
 						/>
-						
+
 						<p className="leading-snug break-words w-full">{feedback.text}</p>
 					</div>
 				</div>
@@ -312,8 +346,8 @@ export default function AuthPage() {
 							mode === 'login'
 								? handleLogin
 								: mode === 'register'
-								? handleSendRegisterOTP
-								: handleSendForgotOTP
+									? handleSendRegisterOTP
+									: handleSendForgotOTP
 						}
 						className="space-y-3.5"
 					>
@@ -322,7 +356,7 @@ export default function AuthPage() {
 								<label className="text-xs font-semibold text-zinc-300">Họ và tên</label>
 								<Input
 									type="text"
-									placeholder="Hà Dũng"
+									placeholder="Nghiêm Vũ Hoàng Long"
 									value={fullName}
 									onChange={(e) => setFullName(e.target.value)}
 									required

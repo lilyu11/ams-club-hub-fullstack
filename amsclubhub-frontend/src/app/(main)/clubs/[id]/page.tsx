@@ -384,198 +384,197 @@ export default function ClubDetailPage() {
 	});
 
 	return (
-		<div className="w-full max-w-5xl mx-auto space-y-6 p-4 sm:p-6 pb-12">
-			{/* Header CLB */}
-			<ClubHeader
-				club={club}
-				isFollowing={isFollowing}
-				canEditClub={canEditClub}
-				onToggleFollow={handleToggleFollow}
-				onOpenEditClubModal={() => {
-					const dataToUse = rawClubData || club;
-					if (dataToUse) {
-						setClubFormData(mapRawDataToForm(dataToUse));
-					}
-					setIsEditClubOpen(true);
-				}}
-			/>
+			<div className="w-full max-w-5xl mx-auto space-y-6 p-4 sm:p-6 pb-12">
+				{/* Header CLB */}
+				<ClubHeader
+					club={club}
+					isFollowing={isFollowing}
+					canEditClub={canEditClub}
+					onToggleFollow={handleToggleFollow}
+					onOpenEditClubModal={() => {
+						const dataToUse = rawClubData || club;
+						if (dataToUse) {
+							setClubFormData(mapRawDataToForm(dataToUse));
+						}
+						setIsEditClubOpen(true);
+					}}
+				/>
 
-			{/* Khu vực chính: Bài đăng */}
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<div className="md:col-span-3 space-y-4">
-					<div className="flex items-center justify-between">
-						{/* Thanh Tab Chuyển Đổi (Bài viết / Sự kiện) */}
-						{/* <div className="flex items-center justify-between border-b border-slate-200/20 pb-3"> */}
-						<div>
-							{/* Cụm Tab dạng Capsule bo tròn giống ảnh mẫu */}
-							<div className="flex items-center gap-1 bg-[#18181b] p-1 rounded-2xl border border-zinc-800/80">
+				{/* Khu vực chính: Bài đăng */}
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<div className="md:col-span-3 space-y-4">
+						<div className="flex items-center justify-between">
+							{/* Thanh Tab Chuyển Đổi (Bài viết / Sự kiện) */}
+							<div>
+								{/* Cụm Tab dạng Capsule bo tròn tự động đổi màu theo Theme */}
+								<div className="flex items-center gap-1 bg-muted p-1 rounded-2xl border border-border">
+									<button
+										type="button"
+										onClick={() => setActiveTab('POST')}
+										className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 ${activeTab === 'POST'
+												? 'bg-card text-foreground shadow-sm'
+												: 'text-muted-foreground hover:text-foreground'
+											}`}
+									>
+										Bài viết ({posts.filter((p) => p.type === 'POST' || !p.type).length})
+									</button>
+									<button
+										type="button"
+										onClick={() => setActiveTab('EVENT')}
+										className={`px-3 py-1.5 text-xs font-semibold rounded-xl transition-all duration-200 ${activeTab === 'EVENT'
+												? 'bg-card text-foreground shadow-sm'
+												: 'text-muted-foreground hover:text-foreground'
+											}`}
+									>
+										Sự kiện ({posts.filter((p) => p.type === 'EVENT').length})
+									</button>
+								</div>
+							</div>
+
+							{/* Modal đăng bài*/}
+							{canEditClub && (
+								<Button
+									size="sm"
+									className="bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl px-4 py-2 transition-all duration-200 shadow-sm"
+									onClick={() => {
+										setEditingPost(null);
+										setPostTitle('');
+										setPostContent('');
+										setPostFormUrl('');
+										setPostImageUrl('');
+										setPostDeadline('');
+										setPostType(activeTab);
+										setEventDuration('');
+										setIsPostDialogOpen(true);
+									}}
+								>
+									<PlusCircle className="mr-1.5 h-3.5 w-3.5" />
+									{activeTab === 'EVENT' ? 'Thêm sự kiện' : 'Thêm bài viết'}
+								</Button>
+							)}
+						</div>
+
+						{filteredPosts.length === 0 ? (
+							<Card className="p-8 text-center text-muted-foreground bg-card border border-border rounded-2xl shadow-sm">
+								{activeTab === 'EVENT'
+									? 'Câu lạc bộ này hiện chưa có sự kiện nào.'
+									: 'Câu lạc bộ này hiện chưa có bài viết nào.'}
+							</Card>
+						) : (
+							<div className="space-y-4">
+								{filteredPosts.map((post) => {
+									const formattedPost: PostData = {
+										...post,
+										club_id: post.club_id || club?.id,
+										club_name: post.club_name || club?.name || 'Câu lạc bộ',
+										club_logo: post.club_logo || club?.logo_url || DEFAULT_AVATAR,
+										action_url: post.action_url || (post as any).form_url || undefined,
+										deadline: post.deadline || undefined,
+									};
+
+									return (
+										<PostCard
+											key={post.id}
+											post={formattedPost}
+											isFollowedInitial={isFollowing}
+											canEditClub={canEditClub}
+											onEdit={handleOpenEditModal}
+											onDelete={handleRequestDelete}
+										/>
+									);
+								})}
+							</div>
+						)}
+					</div>
+				</div>
+
+				{/* Modal sửa profile CLB */}
+				{canEditClub && (
+					<ClubEditModal
+						isOpen={isEditClubOpen}
+						onClose={() => setIsEditClubOpen(false)}
+						formData={clubFormData}
+						setFormData={setClubFormData}
+						onSubmit={handleSaveClubProfile}
+						showToast={showToast}
+					/>
+				)}
+
+				{/* Modal đăng/Sửa bài viết */}
+				<PostModal
+					isOpen={isPostDialogOpen}
+					onClose={() => setIsPostDialogOpen(false)}
+					editingPost={editingPost}
+					postTitle={postTitle}
+					setPostTitle={setPostTitle}
+					postContent={postContent}
+					setPostContent={setPostContent}
+					postFormUrl={postFormUrl}
+					setPostFormUrl={setPostFormUrl}
+					postImageUrl={postImageUrl}
+					setPostImageUrl={setPostImageUrl}
+					postDeadline={postDeadline}
+					setPostDeadline={setPostDeadline}
+					postType={postType}
+					setPostType={setPostType}
+					eventDuration={eventDuration}
+					setEventDuration={setEventDuration}
+					submitting={submitting}
+					onSubmit={handleCreateOrUpdatePost}
+					showToast={showToast}
+				/>
+
+				{/* Modal Xác nhận xóa bài viết */}
+				{postToDelete && (
+					<div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+						<div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
+							<div className="space-y-1.5">
+								<h3 className="text-lg font-bold text-foreground">
+									Xác nhận xóa bài viết?
+								</h3>
+								<p className="text-sm text-muted-foreground">
+									Hành động này không thể hoàn tác. Bài viết &quot;<span className="font-semibold text-foreground">{postToDelete.title}</span>&quot; sẽ bị xóa vĩnh viễn khỏi hệ thống.
+								</p>
+							</div>
+
+							<div className="flex items-center justify-end gap-3 pt-2">
 								<button
 									type="button"
-									onClick={() => setActiveTab('POST')}
-									className={`px-2.5 py-1 text-xs font-semibold rounded-xl transition-all duration-200 ${activeTab === 'POST'
-											? 'bg-[#3f3f46] text-white shadow-sm'
-											: 'text-zinc-400 hover:text-zinc-200'
-										}`}
+									disabled={isDeleting}
+									onClick={() => setPostToDelete(null)}
+									className="px-4 py-2 text-sm font-semibold rounded-xl text-foreground bg-muted hover:bg-muted/80 transition disabled:opacity-50"
 								>
-									Bài viết ({posts.filter((p) => p.type === 'POST' || !p.type).length})
+									Hủy bỏ
 								</button>
 								<button
 									type="button"
-									onClick={() => setActiveTab('EVENT')}
-									className={`px-2.5 py-1 text-xs font-semibold rounded-xl transition-all duration-200 ${activeTab === 'EVENT'
-											? 'bg-[#3f3f46] text-white shadow-sm'
-											: 'text-zinc-400 hover:text-zinc-200'
-										}`}
+									disabled={isDeleting}
+									onClick={confirmDeletePost}
+									className="px-4 py-2 text-sm font-semibold rounded-xl text-white bg-red-600 hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50"
 								>
-									Sự kiện ({posts.filter((p) => p.type === 'EVENT').length})
+									{isDeleting ? 'Đang xóa...' : 'Xóa bài viết'}
 								</button>
 							</div>
 						</div>
+					</div>
+				)}
 
-						{/* Modal đăng bài*/}
-						{canEditClub && (
-							<Button
-								size="sm"
-								className="bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl px-4 py-2 transition-all duration-200"
-								onClick={() => {
-									setEditingPost(null);
-									setPostTitle('');
-									setPostContent('');
-									setPostFormUrl('');
-									setPostImageUrl('');
-									setPostDeadline('');
-									setPostType(activeTab);
-									setEventDuration('');
-									setIsPostDialogOpen(true);
-								}}
-							>
-								<PlusCircle className="mr-1.5 h-3.5 w-3.5" />
-								{activeTab === 'EVENT' ? 'Thêm sự kiện' : 'Thêm bài viết'}
-							</Button>
+				{/* Toast thông báo */}
+				{toastConfig && (
+					<div
+						className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-full text-sm font-semibold shadow-2xl flex items-center gap-2 border transition-all duration-200 animate-in fade-in slide-in-from-top-3 ${toastConfig.type === 'error'
+								? 'bg-card border-border text-foreground'
+								: 'bg-card border-border text-foreground'
+							}`}
+					>
+						{toastConfig.type === 'error' ? (
+							<AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+						) : (
+							<CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
 						)}
+						<span>{toastConfig.message}</span>
 					</div>
-
-					{filteredPosts.length === 0 ? (
-						<Card className="p-8 text-center text-slate-500 dark:text-zinc-400 bg-white dark:bg-zinc-900/60 border border-slate-200/80 dark:border-zinc-800 rounded-2xl shadow-sm">
-							{activeTab === 'EVENT'
-								? 'Câu lạc bộ này hiện chưa có sự kiện nào.'
-								: 'Câu lạc bộ này hiện chưa có bài viết nào.'}
-						</Card>
-					) : (
-						<div className="space-y-4">
-							{filteredPosts.map((post) => {
-								const formattedPost: PostData = {
-									...post,
-									club_id: post.club_id || club?.id,
-									club_name: post.club_name || club?.name || 'Câu lạc bộ',
-									club_logo: post.club_logo || club?.logo_url || DEFAULT_AVATAR,
-									action_url: post.action_url || (post as any).form_url || undefined,
-									deadline: post.deadline || undefined,
-								};
-
-								return (
-									<PostCard
-										key={post.id}
-										post={formattedPost}
-										isFollowedInitial={isFollowing}
-										canEditClub={canEditClub}
-										onEdit={handleOpenEditModal}
-										onDelete={handleRequestDelete}
-									/>
-								);
-							})}
-						</div>
-					)}
-				</div>
+				)}
 			</div>
-
-			{/* Modal sửa profile CLB */}
-			{canEditClub && (
-				<ClubEditModal
-					isOpen={isEditClubOpen}
-					onClose={() => setIsEditClubOpen(false)}
-					formData={clubFormData}
-					setFormData={setClubFormData}
-					onSubmit={handleSaveClubProfile}
-					showToast={showToast}
-				/>
-			)}
-
-			{/* Modal đăng/Sửa bài viết */}
-			<PostModal
-				isOpen={isPostDialogOpen}
-				onClose={() => setIsPostDialogOpen(false)}
-				editingPost={editingPost}
-				postTitle={postTitle}
-				setPostTitle={setPostTitle}
-				postContent={postContent}
-				setPostContent={setPostContent}
-				postFormUrl={postFormUrl}
-				setPostFormUrl={setPostFormUrl}
-				postImageUrl={postImageUrl}
-				setPostImageUrl={setPostImageUrl}
-				postDeadline={postDeadline}
-				setPostDeadline={setPostDeadline}
-				postType={postType}
-				setPostType={setPostType}
-				eventDuration={eventDuration}
-				setEventDuration={setEventDuration}
-				submitting={submitting}
-				onSubmit={handleCreateOrUpdatePost}
-				showToast={showToast}
-			/>
-
-			{/* Modal Xác nhận xóa bài viết */}
-			{postToDelete && (
-				<div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-					<div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200">
-						<div className="space-y-1.5">
-							<h3 className="text-lg font-bold text-slate-900 dark:text-zinc-100">
-								Xác nhận xóa bài viết?
-							</h3>
-							<p className="text-sm text-slate-500 dark:text-zinc-400">
-								Hành động này không thể hoàn tác. Bài viết &quot;<span className="font-semibold text-slate-700 dark:text-zinc-200">{postToDelete.title}</span>&quot; sẽ bị xóa vĩnh viễn khỏi hệ thống.
-							</p>
-						</div>
-
-						<div className="flex items-center justify-end gap-3 pt-2">
-							<button
-								type="button"
-								disabled={isDeleting}
-								onClick={() => setPostToDelete(null)}
-								className="px-4 py-2 text-sm font-semibold rounded-xl text-slate-700 dark:text-zinc-300 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 transition disabled:opacity-50"
-							>
-								Hủy bỏ
-							</button>
-							<button
-								type="button"
-								disabled={isDeleting}
-								onClick={confirmDeletePost}
-								className="px-4 py-2 text-sm font-semibold rounded-xl text-white bg-red-600 hover:bg-red-700 transition flex items-center gap-2 disabled:opacity-50"
-							>
-								{isDeleting ? 'Đang xóa...' : 'Xóa bài viết'}
-							</button>
-						</div>
-					</div>
-				</div>
-			)}
-
-			{/* Toast thông báo */}
-			{toastConfig && (
-				<div
-					className={`fixed top-6 left-1/2 -translate-x-1/2 z-[9999] px-4 py-2.5 rounded-full text-sm font-semibold shadow-2xl flex items-center gap-2 border transition-all duration-200 animate-in fade-in slide-in-from-top-3 ${toastConfig.type === 'error'
-							? 'bg-zinc-900 border-zinc-700 text-white'
-							: 'bg-zinc-900 border-zinc-700 text-white'
-						}`}
-				>
-					{toastConfig.type === 'error' ? (
-						<AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
-					) : (
-						<CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-					)}
-					<span>{toastConfig.message}</span>
-				</div>
-			)}
-		</div>
-	);
-}
+		);
+	}

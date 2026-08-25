@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean, Integer
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 
@@ -31,6 +31,7 @@ class Club(Base):
 	facebook_url = Column(String(500), nullable=True)
 	is_active = Column(Boolean, default=True, nullable=False)
 	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	display_order = Column(Integer, default=0, nullable=False)
 
 	# Foreign key liên kết với user quản lý CLB (Club admin)
 	admin_id = Column(String(36), ForeignKey("users.id", ondelete="RESTRICT"), nullable=False)

@@ -101,8 +101,8 @@ export default function PostModal({
 						<Input
 							placeholder={
 								postType === 'EVENT'
-									? 'Ví dụ: THE LAST PROJECT 5: LEAVE THE WORLD...'
-									: 'Ví dụ: MỞ ĐƠN TUYỂN THÀNH VIÊN HAMAC...'
+									? 'Ví dụ: SCIENCE TONARDO 2026...'
+									: 'Ví dụ: MỞ ĐƠN TUYỂN THÀNH VIÊN...'
 							}
 							value={postTitle}
 							onChange={(e) => setPostTitle(e.target.value)}
