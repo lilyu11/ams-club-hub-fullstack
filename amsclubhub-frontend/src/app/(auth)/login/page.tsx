@@ -47,9 +47,14 @@ export default function AuthPage() {
 	const [loading, setLoading] = useState(false);
 
 	// Handle đổi mật khẩu từ URL
-	const searchParams = useSearchParams();
-	const isForgotPassword = searchParams.get('forgotPassword') === 'true';
-	const initialEmail = searchParams.get('email') || '';
+	const [isForgotPassword, setIsForgotPassword] = useState(false);
+	const [initialEmail, setInitialEmail] = useState('');
+
+	useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		setIsForgotPassword(params.get('forgotPassword') === 'true');
+		setInitialEmail(params.get('email') || '');
+	}, []);
 
 	// 1 Trạng thái thông báo duy nhất (Mặc định hiển thị lời chào)
 	const [feedback, setFeedback] = useState<FeedbackState>({
