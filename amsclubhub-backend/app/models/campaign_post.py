@@ -4,6 +4,7 @@ from enum import Enum
 from sqlalchemy import Column, String, Text, DateTime, Boolean, Integer, ForeignKey, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from datetime import timezone
 
 
 class PostType(str, Enum):
@@ -27,7 +28,7 @@ class CampaignPost(Base):
 	
 	is_active = Column(Boolean, default=True, nullable=False)
 	click_count = Column(Integer, default=0, nullable=False)
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
 	# Relationships
 	club = relationship("Club", back_populates="campaign_posts")

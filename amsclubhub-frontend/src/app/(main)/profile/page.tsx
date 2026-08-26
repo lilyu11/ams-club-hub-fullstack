@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { User, CreditCard, Shield, Mail, Activity, LogOut, LogIn, Loader2 } from 'lucide-react';
+import { User, CreditCard, Shield, Mail, BadgeCheck, LogOut, LogIn, Loader2, KeyRound } from 'lucide-react';
 import api from '@/lib/api';
 
 interface UserProfile {
@@ -19,31 +19,31 @@ export default function ProfilePage() {
 	const [user, setUser] = useState<UserProfile | null>(null);
 	const [isLoading, setIsLoading] = useState<boolean>(true);
 
-useEffect(() => {
-    const fetchUserProfile = async () => {
-      const token = localStorage.getItem('access_token');
+	useEffect(() => {
+		const fetchUserProfile = async () => {
+			const token = localStorage.getItem('access_token');
 
-      if (!token) {
-        setIsLoggedIn(false);
-        setIsLoading(false);
-        return;
-      }
+			if (!token) {
+				setIsLoggedIn(false);
+				setIsLoading(false);
+				return;
+			}
 
-      setIsLoggedIn(true);
+			setIsLoggedIn(true);
 
-      try {
-        const userRes = await api.get('/users/me');
-        setUser(userRes.data);
-      } catch (e) {
-        console.log('Chưa kết nối API /users/me hoặc token hết hạn.');
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+			try {
+				const userRes = await api.get('/users/me');
+				setUser(userRes.data);
+			} catch (e) {
+				console.log('Chưa kết nối API /users/me hoặc token hết hạn.');
+				setUser(null);
+			} finally {
+				setIsLoading(false);
+			}
+		};
 
-    fetchUserProfile();
-  }, []);
+		fetchUserProfile();
+	}, []);
 
 	const handleLogout = () => {
 		localStorage.removeItem('access_token');
@@ -56,31 +56,22 @@ useEffect(() => {
 		router.push('/login');
 	};
 
-	// API không trả về created_at nên tạm thời comment 
-	// const formatDate = (dateString?: string) => {
-	// 	if (!dateString) return 'Không có';
-	// 	try {
-	// 		const date = new Date(dateString);
-	// 		return new Intl.DateTimeFormat('vi-VN', {
-	// 			day: '2-digit',
-	// 			month: '2-digit',
-	// 			year: 'numeric',
-	// 		}).format(date);
-	// 	} catch {
-	// 		return dateString;
-	// 	}
-	// };
+	// Hàm chuyển hướng sang trang login và truyền params mở modal + email
+	const handleChangePassword = () => {
+		const emailParam = user?.email ? `&email=${encodeURIComponent(user.email)}` : '';
+		router.push(`/login?forgotPassword=true${emailParam}`);
+	};
 
 	const ROLE_MAP: Record<string, string> = {
 		student: 'Học sinh',
-		club_admin: 'Admin Câu lạc bộ',
+		club_admin: 'Câu lạc bộ',
 		super_admin: 'Vua',
 	};
-	const displayRole = ROLE_MAP[user?.role || user?.role || 'Không có']
+	const displayRole = ROLE_MAP[user?.role || 'Không có'];
 
 	const profileRows = [
 		{
-			label: 'Họ và tên',
+			label: 'Tên tài khoản',
 			value: isLoggedIn ? user?.full_name || 'Không có' : 'Không tìm thấy',
 			icon: User,
 		},
@@ -102,7 +93,7 @@ useEffect(() => {
 		{
 			label: 'Trạng thái tài khoản',
 			value: isLoggedIn ? 'Đã đăng nhập' : 'Chưa đăng nhập',
-			icon: Activity,
+			icon: BadgeCheck,
 			isStatus: true,
 		},
 	];
@@ -124,9 +115,6 @@ useEffect(() => {
 				</div>
 				<div>
 					<h1 className="text-xl sm:text-2xl font-bold text-foreground">Hồ sơ cá nhân</h1>
-					{/* <p className="text-xs text-muted-foreground">
-						Chi tiết thông tin tài khoản và trạng thái truy cập
-					</p> */}
 				</div>
 			</div>
 
@@ -147,21 +135,19 @@ useEffect(() => {
 							<div className="text-right min-w-0">
 								{item.isStatus ? (
 									<span
-										className={`font-semibold text-xs sm:text-sm ${
-											isLoggedIn
+										className={`font-semibold text-xs sm:text-sm ${isLoggedIn
 												? 'text-emerald-500 dark:text-emerald-400'
 												: 'text-red-500 dark:text-red-400'
-										}`}
+											}`}
 									>
 										{item.value}
 									</span>
 								) : (
 									<span
-										className={`truncate block ${
-											item.value === 'Không có'
+										className={`truncate block ${item.value === 'Không có'
 												? 'text-muted-foreground/40 font-normal'
 												: 'text-muted-foreground font-medium'
-										}`}
+											}`}
 									>
 										{item.value}
 									</span>
@@ -172,17 +158,30 @@ useEffect(() => {
 				})}
 			</div>
 
-			{/* Nút đăng xuất / đăng nhập */}
-			<div className="flex justify-end pt-1">
+			{/* Nút hành động */}
+			<div className="flex justify-end items-center gap-3 pt-1">
 				{isLoggedIn ? (
-					<button
-						type="button"
-						onClick={handleLogout}
-						className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-95"
-					>
-						<LogOut className="w-4 h-4" />
-						<span>Đăng xuất</span>
-					</button>
+					<>
+						{/* Nút Đổi mật khẩu */}
+						<button
+							type="button"
+							onClick={handleChangePassword}
+							className="inline-flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted/80 text-foreground font-medium rounded-xl text-xs sm:text-sm transition shadow-sm border border-border active:scale-95"
+						>
+							<KeyRound className="w-4 h-4 text-primary" />
+							<span>Đổi mật khẩu</span>
+						</button>
+
+						{/* Nút Đăng xuất */}
+						<button
+							type="button"
+							onClick={handleLogout}
+							className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-95"
+						>
+							<LogOut className="w-4 h-4" />
+							<span>Đăng xuất</span>
+						</button>
+					</>
 				) : (
 					<button
 						type="button"

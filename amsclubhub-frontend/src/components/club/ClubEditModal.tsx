@@ -14,6 +14,7 @@ export interface ClubFormData {
 	name: string;
 	description: string;
 	code: string;
+	signature: string;
 	category: string;
 	logo_url: string;
 	banner_url: string;
@@ -363,6 +364,17 @@ export default function ClubEditModal({
 									placeholder="Ví dụ: HAMAC"
 									value={formData.code || ''}
 									onChange={(e) => setFormData((prev: any) => ({ ...prev, code: e.target.value.toUpperCase() }))}
+								/>
+							</div>
+
+							{/* Signature */}
+							<div className="space-y-1">
+								<label className="text-xs font-medium text-muted-foreground">Đặc trưng câu lạc bộ</label>
+								<Input
+									className="bg-background border-border focus:border-ring text-foreground placeholder:text-muted-foreground/60 rounded-lg focus-visible:ring-0 focus-visible:ring-offset-0"
+									placeholder="Ví dụ: Tranh biện / Nấu ăn /..."
+									value={formData.signature || ''}
+									onChange={(e) => setFormData((prev: any) => ({ ...prev, signature: e.target.value }))}
 								/>
 							</div>
 

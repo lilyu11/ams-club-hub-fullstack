@@ -16,7 +16,7 @@ interface UserProfile {
 
 const ROLE_MAP: Record<string, string> = {
 	student: 'Học sinh',
-	club_admin: 'Admin Câu lạc bộ',
+	club_admin: 'Câu lạc bộ',
 	super_admin: 'Vua',
 };
 

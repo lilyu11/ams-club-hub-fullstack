@@ -17,6 +17,7 @@ export default function MainLayout({
 
   const isClubsPage = pathname === '/clubs';
   const isEventsPage = pathname === '/events';
+  const isGuidesPage = pathname === '/guides';
 
   // Tự động đóng Menu Drawer khi chọn trang mới
   useEffect(() => {
@@ -83,14 +84,14 @@ export default function MainLayout({
         {/* Cột nội dung chính */}
         <main
           className={`min-h-screen flex-1 flex flex-col border-r border-border transition-all duration-200 w-full ${
-            isClubsPage || isEventsPage ? 'max-w-none' : 'max-w-[600px]'
+            isClubsPage || isEventsPage || isGuidesPage ? 'max-w-none' : 'max-w-[600px]'
           }`}
         >
           {children}
         </main>
 
         {/* Sidebar bên phải - Chỉ hiện từ màn hình lớn (lg) */}
-        {!(isClubsPage || isEventsPage) && (
+        {!(isClubsPage || isEventsPage || isGuidesPage) && (
           <aside className="sticky top-0 hidden h-screen w-80 shrink-0 p-4 lg:block">
             <SidebarRight />
           </aside>

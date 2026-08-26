@@ -1,7 +1,7 @@
 export interface UserProfile {
 	id: number;
 	email: string;
-	role: 'super_admin' | 'club_admin' | 'admin' | 'student';
+	role: 'super_admin' | 'club_admin' | 'student';
 	club_id?: number | string;
 }
 
@@ -10,6 +10,7 @@ export interface Club {
   name: string;
   code: string;
   category?: string;
+  signature?: string;
   description?: string;
   logo_url?: string | null;
   banner_url?: string | null;
@@ -17,6 +18,7 @@ export interface Club {
   contact_email?: string | null;
   is_active?: boolean;
   followers_count?: number;
+  admin_id: string;
 }
 
 export interface PostData {

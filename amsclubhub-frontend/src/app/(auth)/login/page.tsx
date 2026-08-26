@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
@@ -46,18 +46,33 @@ export default function AuthPage() {
 	const [rememberMe, setRememberMe] = useState(false);
 	const [loading, setLoading] = useState(false);
 
+	// Handle đổi mật khẩu từ URL
+	const searchParams = useSearchParams();
+	const isForgotPassword = searchParams.get('forgotPassword') === 'true';
+	const initialEmail = searchParams.get('email') || '';
+
 	// 1 Trạng thái thông báo duy nhất (Mặc định hiển thị lời chào)
 	const [feedback, setFeedback] = useState<FeedbackState>({
 		type: 'idle',
 		text: IDLE_MESSAGES[0],
 	});
 
+	// Tự động điền email và chuyển mode sang 'forgot' khi chuyển hướng từ Profile
+	useEffect(() => {
+		if (isForgotPassword) {
+			setMode('forgot');
+			if (initialEmail) {
+				setEmail(initialEmail);
+			}
+			resetMessagesAndStep();
+		}
+	}, [isForgotPassword, initialEmail]);
+
 	useEffect(() => {
 		// TH1: Khi ở trạng thái rảnh (idle) -> Xoay vòng đổi câu thoại mỗi 10 giây
 		if (feedback.type === 'idle') {
 			const interval = setInterval(() => {
 				setFeedback((prev) => {
-					// Lấy ngẫu nhiên 1 câu thoại khác câu hiện tại
 					const otherMessages = IDLE_MESSAGES.filter((m) => m !== prev.text);
 					const randomText = otherMessages[Math.floor(Math.random() * otherMessages.length)];
 
@@ -65,19 +80,19 @@ export default function AuthPage() {
 				});
 			}, 10000);
 
-			return () => clearInterval(interval); // dọn dẹp timer khi unmount hoặc đổi state
+			return () => clearInterval(interval);
 		}
 
 		// TH2: Khi có thông báo Lỗi hoặc Thành công -> Chờ 5s rồi reset về idle
 		const timeout = setTimeout(() => {
 			setFeedback({
 				type: 'idle',
-				text: IDLE_MESSAGES[0], // Quay lại câu thoại đầu tiên
+				text: IDLE_MESSAGES[0],
 			});
 		}, 5000);
 
 		return () => clearTimeout(timeout);
-	}, [feedback.type]); // Chỉ phụ thuộc vào feedback.type
+	}, [feedback.type]);
 
 	// Hàm hỗ trợ gửi thông báo
 	const notify = (type: 'error' | 'success', text: string) => {
@@ -122,7 +137,7 @@ export default function AuthPage() {
 	// Đăng nhập
 	const handleLogin = async (e: React.SyntheticEvent) => {
 		e.preventDefault();
-		setLoading(true);
+
 		if (!email) {
 			notify('error', 'Bạn quên điền email kìa..');
 			return;
@@ -133,6 +148,7 @@ export default function AuthPage() {
 			return;
 		}
 
+		setLoading(true);
 		try {
 			const formData = new URLSearchParams();
 			formData.append('username', email);
@@ -172,7 +188,7 @@ export default function AuthPage() {
 		}
 
 		if (!validateEmail(email)) {
-			notify('error', 'Điền lại email cho đúng đi đã...')
+			notify('error', 'Điền lại email cho đúng đi đã...');
 			return;
 		}
 
@@ -504,9 +520,9 @@ export default function AuthPage() {
 							{loading ? (
 								<Loader2 className="h-4 w-4 animate-spin text-black" />
 							) : mode === 'register' ? (
-								'Xác nhận & Đăng ký'
+								'Xác nhận đăng ký'
 							) : (
-								'Xác nhận & Đổi mật khẩu'
+								'Xác nhận đổi mật khẩu'
 							)}
 						</Button>
 

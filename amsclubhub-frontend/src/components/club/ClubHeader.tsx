@@ -125,6 +125,9 @@ export default function ClubHeader({
 							<span className="px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-neutral-900 text-zinc-700 dark:text-neutral-300 border border-zinc-200 dark:border-neutral-800 font-medium">
 								{club?.category || 'Chưa phân loại'}
 							</span>
+							<span className="px-2.5 py-0.5 rounded-full bg-zinc-100 dark:bg-neutral-900 text-zinc-700 dark:text-neutral-300 border border-zinc-200 dark:border-neutral-800 font-medium">
+								{club?.signature || 'Đặc trưng câu lạc bộ'}
+							</span>
 						</div>
 					</div>
 
@@ -139,7 +142,7 @@ export default function ClubHeader({
 					<div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-4 pt-3 border-t border-zinc-200 dark:border-neutral-800/80 text-xs sm:text-sm text-zinc-500 dark:text-neutral-400">
 						{/* Số lượng người theo dõi */}
 						<div className="whitespace-nowrap shrink-0">
-							<strong className="text-zinc-900 dark:text-white font-bold">{club?.followers_count || '30K'}</strong>{' '}
+							<strong className="text-zinc-900 dark:text-white font-bold">{club?.followers_count || 0}</strong>{' '}
 							<span>người theo dõi</span>
 						</div>
 

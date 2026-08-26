@@ -27,9 +27,9 @@ export default function SettingsPage() {
 		</div>
 		<div>
 		  <h1 className="text-2xl font-bold text-foreground">Cài đặt</h1>
-		  <p className="text-xs text-muted-foreground">
+		  {/* <p className="text-xs text-muted-foreground">
 			Quản lý giao diện và thiết lập tài khoản
-		  </p>
+		  </p> */}
 		</div>
 	  </div>
 

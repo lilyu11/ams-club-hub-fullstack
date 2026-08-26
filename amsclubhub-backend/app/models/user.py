@@ -4,6 +4,7 @@ from enum import Enum
 from sqlalchemy import Column, String, DateTime, Enum as SQLEnum, Boolean
 from sqlalchemy.orm import relationship
 from app.core.database import Base
+from datetime import timezone
 
 
 class UserRole(str, Enum):
@@ -28,7 +29,7 @@ class User(Base):
 	role = Column(SQLEnum(UserRole, name="userrole"), default=UserRole.STUDENT, nullable=False)
 	phone_number = Column(String(20), nullable=True)
 	is_active = Column(Boolean, default=True, nullable=False)
-	created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+	created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
 
 	# Relationships
 	clubs = relationship("Club", back_populates="admin")

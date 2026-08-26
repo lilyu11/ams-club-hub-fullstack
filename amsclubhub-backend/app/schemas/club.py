@@ -8,11 +8,13 @@ class ClubBase(BaseModel):
 	name: str
 	code: str
 	category: Optional[str] = None
+	signature: Optional[str] = None
 	description: Optional[str] = None
 	logo_url: Optional[str] = None
 	banner_url: Optional[str] = None
 	facebook_url: Optional[str] = None
 	contact_email: Optional[str] = None
+	follower_count: Optional[str] = None
 	is_active: Optional[bool] = True
 
 
@@ -24,13 +26,15 @@ class ClubCreate(ClubBase):
 # Schema nhận dữ liệu khi cập nhật CLB
 class ClubUpdate(BaseModel):
 	name: Optional[str] = None
-	category: Optional[str] = None
 	code: Optional[str] = None
+	category: Optional[str] = None
+	signature: Optional[str] = None
 	description: Optional[str] = None
 	logo_url: Optional[str] = None
 	banner_url: Optional[str] = None
 	facebook_url: Optional[str] = None
 	contact_email: Optional[str] = None
+	follower_count: Optional[str] = None
 	is_active: Optional[bool] = None
 
 

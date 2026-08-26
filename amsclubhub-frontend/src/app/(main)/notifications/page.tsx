@@ -341,9 +341,9 @@ export default function NotificationsPage() {
 				</div>
 				<div>
 					<h1 className="text-xl sm:text-2xl font-bold text-foreground">Thông báo</h1>
-					<p className="text-xs text-muted-foreground">
+					{/* <p className="text-xs text-muted-foreground">
 						Cập nhật bài viết từ CLB đã theo dõi & Lịch nhắc nhở gửi về email
-					</p>
+					</p> */}
 				</div>
 			</div>
 

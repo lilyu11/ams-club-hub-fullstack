@@ -32,5 +32,6 @@ class UserResponse(BaseModel):
 	student_id: Optional[str] = None
 	role: UserRole
 	is_active: bool
+	club_id: Optional[str] = None
 
 model_config = ConfigDict(from_attributes=True)

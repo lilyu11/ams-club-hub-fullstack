@@ -24,8 +24,8 @@ function ClubCard({ club }: { club: Club }) {
 	const validRawUrl = isValidUrlStr(club.logo_url)
 		? club.logo_url
 		: isValidUrlStr(club.banner_url)
-		? club.banner_url
-		: null;
+			? club.banner_url
+			: null;
 
 	const imageUrl = validRawUrl ? getFullImageUrl(validRawUrl) : null;
 
@@ -45,8 +45,11 @@ function ClubCard({ club }: { club: Club }) {
 						onError={() => setImgError(true)}
 					/>
 				) : (
-					<div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-sky-500/20 flex items-center justify-center text-blue-400 font-bold text-xl">
-						{club.code || club.name?.substring(0, 2).toUpperCase() || 'CLUB'}
+					<div className="flex items-center gap-1.5 min-w-0 mb-3">
+						{/* Fallback khi lỗi ảnh */}
+						<div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-sky-500/20 flex items-center justify-center text-blue-400 font-bold text-xl">
+							{club.code || club.name?.substring(0, 2).toUpperCase() || 'CLUB'}
+						</div>
 					</div>
 				)}
 
@@ -59,12 +62,24 @@ function ClubCard({ club }: { club: Club }) {
 
 			<div className="flex-1 flex flex-col justify-between">
 				<div>
+
 					<h3 className="font-bold text-sm text-slate-900 dark:text-zinc-100 line-clamp-1 group-hover:text-blue-500 transition-colors">
 						{club.name}
 					</h3>
-					<p className="text-xs text-slate-500 dark:text-zinc-400 mt-0.5 font-medium">
-						#{club.code}
-					</p>
+
+					<div className="flex items-center gap-1.5 min-w-0 mt-1">
+						<span className="shrink min-w-0 truncate text-[10px] font-medium px-1.5 py-0.5 bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-zinc-400 border border-slate-200 dark:border-zinc-700/60 rounded-md">
+							#{club.code}
+						</span>
+						{club.signature && (
+							<span
+								className="shrink-0 inline-flex items-center gap-0.5 text-[10px] font-semibold px-1.5 py-0.5 bg-amber-500/15 text-amber-400 border border-amber-500/30 rounded-md max-w-[95px] truncate"
+								title={typeof club.signature === 'string' ? club.signature : 'Signature'}
+							>
+								★ {typeof club.signature === 'string' ? club.signature : 'Signature'}
+							</span>
+						)}
+					</div>
 				</div>
 
 				<div className="flex items-center gap-1 mt-3 pt-2 border-t border-slate-100 dark:border-zinc-800/50 text-[11px] text-slate-500 dark:text-zinc-400">
@@ -114,6 +129,7 @@ export default function ClubsPage() {
 				!query ||
 				club.name?.toLowerCase().includes(query) ||
 				club.code?.toLowerCase().includes(query) ||
+				club.signature?.toLowerCase().includes(query) ||
 				club.description?.toLowerCase().includes(query);
 
 			const matchesCategory =
@@ -152,22 +168,20 @@ export default function ClubsPage() {
 					<button
 						type="button"
 						onClick={() => setViewScope('all')}
-						className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-							viewScope === 'all'
-								? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-zinc-100 shadow-sm'
-								: 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-						}`}
+						className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewScope === 'all'
+							? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-zinc-100 shadow-sm'
+							: 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+							}`}
 					>
 						Tất cả
 					</button>
 					<button
 						type="button"
 						onClick={() => setViewScope('followed')}
-						className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-							viewScope === 'followed'
-								? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-zinc-100 shadow-sm'
-								: 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
-						}`}
+						className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${viewScope === 'followed'
+							? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-zinc-100 shadow-sm'
+							: 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200'
+							}`}
 					>
 						Đã theo dõi
 					</button>
@@ -180,11 +194,10 @@ export default function ClubsPage() {
 						key={cat}
 						type="button"
 						onClick={() => setSelectedCategory(cat)}
-						className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${
-							selectedCategory === cat
-								? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-								: 'bg-slate-100 dark:bg-zinc-800/60 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
-						}`}
+						className={`px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all ${selectedCategory === cat
+							? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+							: 'bg-slate-100 dark:bg-zinc-800/60 text-slate-600 dark:text-zinc-400 hover:bg-slate-200 dark:hover:bg-zinc-800 hover:text-slate-900 dark:hover:text-zinc-200'
+							}`}
 					>
 						{cat}
 					</button>

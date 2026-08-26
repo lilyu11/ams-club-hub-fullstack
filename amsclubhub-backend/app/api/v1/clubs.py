@@ -64,14 +64,14 @@ def get_clubs(
 	category: Optional[str] = Query(None, description="Lọc theo thể loại"),
 	search: Optional[str] = Query(None, description="Tìm kiếm theo tên hoặc mã CLB"),
 	skip: int = 0,
-	limit: int = 20,
+	limit: int = 100,
 	db: Session = Depends(get_db)
 	):
 	
 	# Lấy danh sách tất cả các CLB (Công khai)
 	# Hỗ trợ lọc theo category và tìm kiếm tên
 	
-	query = db.query(Club).filter(Club.is_active == True)
+	query = db.query(Club).order_by(Club.display_order.asc()).filter(Club.is_active == True)
 
 	if category:
 		query = query.filter(Club.category == category)
@@ -236,9 +236,8 @@ def get_followed_clubs(
 	db: Session = Depends(get_db),
 	current_user: User = Depends(get_current_user)
 ):
-	follows = db.query(ClubFollower).filter(
-	ClubFollower.user_id == current_user.id
-	).all()
+	follows = db.query(ClubFollower).join(Club, ClubFollower.club_id == Club.id)\
+	.filter(ClubFollower.user_id == current_user.id).order_by(Club.display_order.asc()).all()
 
 	# Lọc ra các CLB mà người dùng đang follow (CLB active và không bị xóa)
 	followed_clubs = [follow.club for follow in follows if follow.club.is_active and follow.club is not None]
