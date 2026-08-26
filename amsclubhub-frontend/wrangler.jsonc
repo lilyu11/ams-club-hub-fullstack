@@ -1,13 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "amsclubhub-frontend",
+  "name": "ams-club-hub-hdung",
   "main": ".vercel/output/static/_worker.js/index.js",
   "compatibility_date": "2026-08-26",
   "compatibility_flags": [
-	"nodejs_compat"
+    "nodejs_compat"
   ],
   "assets": {
-	"binding": "ASSETS",
-	"directory": ".vercel/output/static"
+    "directory": ".vercel/output/static"
   }
 }
