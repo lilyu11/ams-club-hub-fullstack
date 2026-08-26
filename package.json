@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "pages:build": "npx @cloudflare/next-on-pages"
+    "pages:build": "next-on-pages"
   },
   "dependencies": {
     "next": "14.2.15",
@@ -16,6 +16,6 @@
   "devDependencies": {
     "@cloudflare/next-on-pages": "1.12.0",
     "typescript": "^5.0.0",
-    "wrangler": "^4.126.0"
+    "wrangler": "^3.80.0"
   }
 }
