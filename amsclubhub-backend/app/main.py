@@ -38,7 +38,7 @@ origins = [
 	"http://127.0.0.1:3000",
 	"http://127.0.0.1:5173",
 	"http://127.0.0.1:8080",
-	#                             Mở cho tất cả các nguồn (dùng thoải mái khi Dev)
+	"https://ams-club-hub.hadung29112009.workers.dev/",
 ]
 
 # TÍCH HỢP CORS MIDDLEWARE VÀO FASTAPI
