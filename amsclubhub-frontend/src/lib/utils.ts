@@ -11,7 +11,7 @@ const BACKEND_DOMAIN = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:800
 
 // Hàm xử lý URL ảnh
 export function getFullImageUrl(path?: string | null): string {
-	// Thay thế placeholder hỏng bằng placehold.co
+	// Kiểm tra path rỗng hoặc placeholder hỏng
 	if (!path || path === 'string' || path.includes('via.placeholder.com')) {
 		return 'https://placehold.co/300x300?text=No+Image';
 	}
@@ -20,12 +20,12 @@ export function getFullImageUrl(path?: string | null): string {
 		return 'https://placehold.co/300x300?text=Invalid+Image';
 	}
 
-	// FIX LỖI: Sửa cứng URL localhost trỏ về domain Render thực tế
+	// Lọc bỏ localhost:8000 nếu bị lưu cứng trong Database cũ
 	if (path.includes('localhost:8000')) {
 		path = path.replace('http://localhost:8000', '').replace('https://localhost:8000', '');
 	}
 
-	// Nếu đã là URL tuyệt đối hợp lệ (http://... hoặc https://...)
+	// Nếu là URL tuyệt đối hợp lệ (Supabase Storage, Cloudinary, data base64...)
 	if (
 		path.startsWith('http://') ||
 		path.startsWith('https://') ||
@@ -34,12 +34,11 @@ export function getFullImageUrl(path?: string | null): string {
 		return path;
 	}
 
-	// Chuẩn hóa đường dẫn tương đối từ Backend
+	// Chuẩn hóa đường dẫn tương đối (ví dụ: /static/images/xxx.webp)
 	const cleanPath = path.startsWith('/') ? path : `/${path}`;
-	// Thay đổi mặc định fallback từ localhost sang domain Render
 	const backendBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ams-club-hub-fullstack.onrender.com';
 
-	// Tách lấy domain gốc (bỏ /api/v1 nếu có)
+	// Tách lấy domain gốc Render (bỏ phần /api/v1)
 	try {
 		const origin = new URL(backendBaseUrl).origin;
 		return `${origin}${cleanPath}`;
