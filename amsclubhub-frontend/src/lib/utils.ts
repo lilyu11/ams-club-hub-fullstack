@@ -17,27 +17,33 @@ export function getFullImageUrl(path?: string | null): string {
 	}
 
 	if (path.startsWith('blob:')) {
-	 	 return 'https://placehold.co/300x300?text=Invalid+Image';
- 	 }
+		return 'https://placehold.co/300x300?text=Invalid+Image';
+	}
 
-	// Nếu đã là URL tuyệt đối (http://... hoặc https://...)
+	// FIX LỖI: Sửa cứng URL localhost trỏ về domain Render thực tế
+	if (path.includes('localhost:8000')) {
+		path = path.replace('http://localhost:8000', '').replace('https://localhost:8000', '');
+	}
+
+	// Nếu đã là URL tuyệt đối hợp lệ (http://... hoặc https://...)
 	if (
-			path.startsWith('http://') ||
-			path.startsWith('https://') ||
-			path.startsWith('data:')
-		) {
-			return path;
-		}
+		path.startsWith('http://') ||
+		path.startsWith('https://') ||
+		path.startsWith('data:')
+	) {
+		return path;
+	}
 
-	// Chuẩn hóa đường dẫn tương đối từ Backend (Thêm host localhost:8000)
+	// Chuẩn hóa đường dẫn tương đối từ Backend
 	const cleanPath = path.startsWith('/') ? path : `/${path}`;
-	const backendBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
-	
+	// Thay đổi mặc định fallback từ localhost sang domain Render
+	const backendBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ams-club-hub-fullstack.onrender.com';
+
 	// Tách lấy domain gốc (bỏ /api/v1 nếu có)
 	try {
 		const origin = new URL(backendBaseUrl).origin;
 		return `${origin}${cleanPath}`;
 	} catch {
-		return `http://localhost:8000${cleanPath}`;
+		return `https://ams-club-hub-fullstack.onrender.com${cleanPath}`;
 	}
 }
