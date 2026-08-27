@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import { Input } from '@/components/ui/input';
@@ -283,27 +283,27 @@ export default function AuthPage() {
 	};
 
 	return (
-		<div className="flex min-h-screen items-center justify-center bg-black p-4 text-white">
-			<div className="w-full max-w-md space-y-5 rounded-3xl border border-zinc-800 bg-zinc-900/90 p-7 shadow-2xl backdrop-blur-md">
+		<div className="flex min-h-screen items-center justify-center bg-background p-4 text-foreground">
+			<div className="w-full max-w-md space-y-5 rounded-3xl border border-border bg-card p-7 shadow-2xl backdrop-blur-md">
 
 				{/* Header */}
 				<div className="text-center space-y-1">
-					<div className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-white">
-						<span className="text-blue-500 font-extrabold text-2xl">✦</span> AmsClubHub
+					<div className="inline-flex items-center gap-2 text-xl font-bold tracking-tight text-foreground">
+						<span className="text-primary font-extrabold text-2xl">✦</span> AmsClubHub
 					</div>
-					<h1 className="text-2xl font-bold tracking-tight text-white">
+					<h1 className="text-2xl font-bold tracking-tight text-foreground">
 						{mode === 'login' && 'Đăng nhập'}
 						{mode === 'register' && 'Tạo tài khoản mới'}
 						{mode === 'forgot' && 'Quên mật khẩu'}
 					</h1>
-					<p className="text-xs text-zinc-400">
+					<p className="text-xs text-muted-foreground">
 						{mode === 'login' && (
 							<>
 								Chưa có tài khoản?{' '}
 								<button
 									type="button"
 									onClick={() => { setMode('register'); resetMessagesAndStep(); }}
-									className="font-semibold text-blue-400 hover:text-blue-300 hover:underline transition"
+									className="font-semibold text-primary hover:underline transition"
 								>
 									Đăng ký ngay
 								</button>
@@ -315,7 +315,7 @@ export default function AuthPage() {
 								<button
 									type="button"
 									onClick={() => { setMode('login'); resetMessagesAndStep(); }}
-									className="font-semibold text-blue-400 hover:text-blue-300 hover:underline transition"
+									className="font-semibold text-primary hover:underline transition"
 								>
 									Đăng nhập
 								</button>
@@ -325,7 +325,7 @@ export default function AuthPage() {
 					</p>
 				</div>
 
-				{/* MASCOT CHIM & BONG BÓNG THOẠI (FIXED HEIGHT CONTAINER) */}
+				{/* MASCOT CHIM & BONG BÓNG THOẠI */}
 				<div className="flex items-center gap-3 pt-1">
 					{/* Ảnh chú chim */}
 					<div className="relative shrink-0">
@@ -337,22 +337,22 @@ export default function AuthPage() {
 						/>
 					</div>
 
-					{/* Bong bóng thoại cố định chiều cao (min-h-[56px]) */}
+					{/* Bong bóng thoại */}
 					<div
 						className={`relative w-fit max-w-[280px] min-w-[120px] min-h-[44px] px-4 py-2.5 rounded-2xl border text-xs font-medium flex items-center transition-all duration-300 ease-in-out ${feedback.type === 'error'
-							? 'bg-red-950/40 border-red-500/40 text-red-300'
-							: feedback.type === 'success'
-								? 'bg-emerald-950/40 border-emerald-500/40 text-emerald-300'
-								: 'bg-zinc-800/80 border-zinc-700/80 text-zinc-300'
+								? 'bg-destructive/10 border-destructive/30 text-destructive'
+								: feedback.type === 'success'
+									? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+									: 'bg-muted border-border text-muted-foreground'
 							}`}
 					>
 						{/* Mũi tên chỉ vào con chim */}
 						<div
 							className={`absolute -left-2 top-1/2 -translate-y-1/2 w-0 h-0 border-y-[6px] border-y-transparent border-r-[8px] transition-all duration-300 ${feedback.type === 'error'
-								? 'border-r-red-500/40'
-								: feedback.type === 'success'
-									? 'border-r-emerald-500/40'
-									: 'border-r-zinc-700/80'
+									? 'border-r-destructive/30'
+									: feedback.type === 'success'
+										? 'border-r-emerald-500/30'
+										: 'border-r-border'
 								}`}
 						/>
 
@@ -374,39 +374,39 @@ export default function AuthPage() {
 					>
 						{mode === 'register' && (
 							<div className="space-y-1">
-								<label className="text-xs font-semibold text-zinc-300">Họ và tên</label>
+								<label className="text-xs font-semibold text-foreground/80">Họ và tên</label>
 								<Input
 									type="text"
 									placeholder="Nghiêm Vũ Hoàng Long"
 									value={fullName}
 									onChange={(e) => setFullName(e.target.value)}
 									required
-									className="rounded-full bg-zinc-800/80 border-zinc-700 text-white placeholder:text-zinc-500 h-10 px-4 text-sm"
+									className="rounded-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground h-10 px-4 text-sm"
 								/>
 							</div>
 						)}
 
 						<div className="space-y-1">
-							<label className="text-xs font-semibold text-zinc-300">Email</label>
+							<label className="text-xs font-semibold text-foreground/80">Email</label>
 							<Input
 								type="email"
 								placeholder="yourname@mail.com"
 								value={email}
 								onChange={(e) => setEmail(e.target.value)}
 								required
-								className="rounded-full bg-zinc-800/80 border-zinc-700 text-white placeholder:text-zinc-500 h-10 px-4 text-sm"
+								className="rounded-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground h-10 px-4 text-sm"
 							/>
 						</div>
 
 						{mode !== 'forgot' && (
 							<div className="space-y-1">
 								<div className="flex justify-between items-center">
-									<label className="text-xs font-semibold text-zinc-300">Mật khẩu</label>
+									<label className="text-xs font-semibold text-foreground/80">Mật khẩu</label>
 									{mode === 'login' && (
 										<button
 											type="button"
 											onClick={() => { setMode('forgot'); resetMessagesAndStep(); }}
-											className="text-xs font-medium text-blue-400 hover:text-blue-300 hover:underline transition"
+											className="text-xs font-medium text-primary hover:underline transition"
 										>
 											Quên mật khẩu?
 										</button>
@@ -419,12 +419,12 @@ export default function AuthPage() {
 										value={password}
 										onChange={(e) => setPassword(e.target.value)}
 										required
-										className="rounded-full bg-zinc-800/80 border-zinc-700 text-white placeholder:text-zinc-500 h-10 px-4 pr-10 text-sm"
+										className="rounded-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground h-10 px-4 pr-10 text-sm"
 									/>
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition"
+										className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
 									>
 										{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
 									</button>
@@ -439,9 +439,9 @@ export default function AuthPage() {
 									id="remember"
 									checked={rememberMe}
 									onChange={(e) => setRememberMe(e.target.checked)}
-									className="h-4 w-4 rounded border-zinc-700 bg-zinc-800 text-blue-600 focus:ring-blue-500 cursor-pointer"
+									className="h-4 w-4 rounded border-border bg-muted text-primary focus:ring-primary cursor-pointer"
 								/>
-								<label htmlFor="remember" className="text-xs text-zinc-400 cursor-pointer select-none">
+								<label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer select-none">
 									Ghi nhớ đăng nhập
 								</label>
 							</div>
@@ -450,10 +450,10 @@ export default function AuthPage() {
 						<Button
 							type="submit"
 							disabled={loading}
-							className="w-full rounded-full bg-white hover:bg-zinc-200 text-black h-10 font-semibold transition-all shadow-md mt-1"
+							className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 font-semibold transition-all shadow-md mt-1"
 						>
 							{loading ? (
-								<Loader2 className="h-4 w-4 animate-spin text-black" />
+								<Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
 							) : mode === 'login' ? (
 								'Đăng nhập'
 							) : mode === 'register' ? (
@@ -467,7 +467,7 @@ export default function AuthPage() {
 							<button
 								type="button"
 								onClick={() => { setMode('login'); resetMessagesAndStep(); }}
-								className="w-full text-xs text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 pt-1 transition"
+								className="w-full text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 pt-1 transition"
 							>
 								<ArrowLeft className="w-3.5 h-3.5" /> Quay lại đăng nhập
 							</button>
@@ -482,7 +482,7 @@ export default function AuthPage() {
 						className="space-y-3.5"
 					>
 						<div className="space-y-1">
-							<label className="text-xs font-semibold text-zinc-300">Mã OTP (6 chữ số)</label>
+							<label className="text-xs font-semibold text-foreground/80">Mã OTP (6 chữ số)</label>
 							<Input
 								type="text"
 								placeholder="123456"
@@ -490,13 +490,13 @@ export default function AuthPage() {
 								onChange={(e) => setOtp(e.target.value)}
 								maxLength={6}
 								required
-								className="rounded-full bg-zinc-800/80 border-zinc-700 text-white placeholder:text-zinc-600 text-center tracking-widest text-lg h-11 font-bold"
+								className="rounded-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground text-center tracking-widest text-lg h-11 font-bold"
 							/>
 						</div>
 
 						{mode === 'forgot' && (
 							<div className="space-y-1">
-								<label className="text-xs font-semibold text-zinc-300">Mật khẩu mới</label>
+								<label className="text-xs font-semibold text-foreground/80">Mật khẩu mới</label>
 								<div className="relative">
 									<Input
 										type={showPassword ? 'text' : 'password'}
@@ -504,12 +504,12 @@ export default function AuthPage() {
 										value={newPassword}
 										onChange={(e) => setNewPassword(e.target.value)}
 										required
-										className="rounded-full bg-zinc-800/80 border-zinc-700 text-white placeholder:text-zinc-500 h-10 px-4 pr-10 text-sm"
+										className="rounded-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground h-10 px-4 pr-10 text-sm"
 									/>
 									<button
 										type="button"
 										onClick={() => setShowPassword(!showPassword)}
-										className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-200 transition"
+										className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition"
 									>
 										{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
 									</button>
@@ -520,10 +520,10 @@ export default function AuthPage() {
 						<Button
 							type="submit"
 							disabled={loading}
-							className="w-full rounded-full bg-white hover:bg-zinc-200 text-black h-10 font-semibold transition-all shadow-md"
+							className="w-full rounded-full bg-primary hover:bg-primary/90 text-primary-foreground h-10 font-semibold transition-all shadow-md"
 						>
 							{loading ? (
-								<Loader2 className="h-4 w-4 animate-spin text-black" />
+								<Loader2 className="h-4 w-4 animate-spin text-primary-foreground" />
 							) : mode === 'register' ? (
 								'Xác nhận đăng ký'
 							) : (
@@ -534,7 +534,7 @@ export default function AuthPage() {
 						<button
 							type="button"
 							onClick={() => { setStep('form'); }}
-							className="w-full text-xs text-zinc-400 hover:text-white flex items-center justify-center gap-1.5 pt-1 transition"
+							className="w-full text-xs text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 pt-1 transition"
 						>
 							<ArrowLeft className="w-3.5 h-3.5" /> Quay lại chỉnh sửa thông tin
 						</button>

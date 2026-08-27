@@ -58,7 +58,7 @@ export default function RotatingClubsWidget() {
 					<Users className="w-4 h-4 text-primary" />
 					<h3 className="font-bold text-sm text-card-foreground">Gợi ý câu lạc bộ</h3>
 				</div>
-				<button 
+				<button
 					onClick={() => rotateClubs(allClubs)}
 					title="Đổi danh sách"
 					className="text-muted-foreground hover:text-foreground transition"
@@ -97,7 +97,7 @@ export default function RotatingClubsWidget() {
 									)}
 
 									<div className="flex flex-col truncate">
-										<p className="text-sm font-semibold text-card-foreground hover:border-border">
+										<p className="text-sm font-semibold text-card-foreground">
 											{club.name}
 										</p>
 										<span className="text-xs text-muted-foreground truncate">
@@ -106,11 +106,12 @@ export default function RotatingClubsWidget() {
 									</div>
 								</div>
 
-								<button className="text-xs bg-primary text-primary-foreground font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition shrink-0">
-								 <Link href={`/clubs/${club.id}`} className="text-sm font-semibold text-card-foreground hover:border-border">
-											Xem thêm
-										</Link>
-								</button>
+								<Link
+									href={`/clubs/${club.id}`}
+									className="text-xs bg-primary text-primary-foreground font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition shrink-0 inline-flex items-center justify-center"
+								>
+									Xem thêm
+								</Link>
 							</div>
 						);
 					})}

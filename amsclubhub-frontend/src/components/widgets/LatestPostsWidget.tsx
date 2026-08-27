@@ -22,10 +22,16 @@ export default function LatestPostsWidget() {
 	const [posts, setPosts] = useState<PostItem[]>([]);
 	const [loading, setLoading] = useState(true);
 
+	const isNew = (dateString: string) => {
+		if (!dateString) return false;
+		const diffInMs = new Date().getTime() - new Date(dateString).getTime();
+		const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
+		return diffInDays >= 0 && diffInDays < 7;
+	};
+
 	useEffect(() => {
 		const fetchLatestPostsAndClubs = async () => {
 			try {
-				// Gọi đồng thời API lấy danh sách bài viết và danh sách câu lạc bộ
 				const [postsRes, clubsRes] = await Promise.allSettled([
 					api.get('/posts', { params: { limit: 10, sort_by: 'created_at', order: 'desc' } }),
 					api.get('/clubs'),
@@ -36,7 +42,6 @@ export default function LatestPostsWidget() {
 					rawPosts = Array.isArray(postsRes.value.data) ? postsRes.value.data : postsRes.value.data?.items || [];
 				}
 
-				// Tạo một map từ club_id sang tên câu lạc bộ để dễ dàng tra cứu
 				const clubsMap: Record<number, string> = {};
 				if (clubsRes.status === 'fulfilled') {
 					const rawClubs = Array.isArray(clubsRes.value.data) ? clubsRes.value.data : clubsRes.value.data?.items || [];
@@ -45,18 +50,16 @@ export default function LatestPostsWidget() {
 					});
 				}
 
-				// Map tên CLB từ club_id
 				const mappedPosts: PostItem[] = rawPosts.map((post) => ({
 					...post,
 					club_name: post.club?.name || post.club_name || clubsMap[post.club_id] || 'AmsClubHub',
 				}));
 
-				// Sắp xếp bài viết mới nhất lên đầu ở Client
-				const sorted = mappedPosts.sort((a, b) => 
-					new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-				);
+				const recentPosts = mappedPosts
+					.filter((post) => isNew(post.created_at))
+					.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-				setPosts(sorted.slice(0, 3));
+				setPosts(recentPosts.slice(0, 3));
 			} catch (err) {
 				console.error('Lỗi lấy bài viết mới:', err);
 			} finally {
@@ -88,7 +91,7 @@ export default function LatestPostsWidget() {
 						<Link
 							key={post.id}
 							href={`/posts/${post.id}`}
-							className="block p-2.5 rounded-xl hover:bg-muted/50 transition border border-transparent hover:border-border"
+							className="block p-2.5 rounded-xl bg-muted/40 hover:bg-muted/80 transition border border-border/40 hover:border-border"
 						>
 							<p className="text-[11px] font-semibold text-primary/90">
 								{post.club_name}

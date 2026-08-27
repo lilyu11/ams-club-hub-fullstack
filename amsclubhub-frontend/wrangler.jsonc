@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "ams-club-hub-hdung",
+  "name": "ams-club-hub",
   "main": ".vercel/output/static/_worker.js/index.js",
   "compatibility_date": "2026-08-26",
   "compatibility_flags": [

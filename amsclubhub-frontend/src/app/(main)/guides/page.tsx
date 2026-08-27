@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link'
+import Link from 'next/link';
 import {
 	BookOpen,
 	PhoneCall,
@@ -15,6 +15,7 @@ import {
 	HelpCircle,
 	Info,
 	Compass,
+	ArrowLeft,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -149,16 +150,10 @@ const GUIDE_TOPICS: GuideTopic[] = [
 			{
 				title: 'Điều khoản dịch vụ',
 				description: 'Chưa cập nhật',
-				// details: [
-				// 	'Tùy chỉnh giao diện sáng tối',
-				// ],
 			},
 			{
 				title: 'Chính sách bảo mật',
 				description: 'Chưa cập nhật',
-				// details: [
-				// 	'Tùy chỉnh giao diện sáng tối',
-				// ],
 			},
 		],
 	},
@@ -180,7 +175,7 @@ const GUIDE_TOPICS: GuideTopic[] = [
 				title: 'Feedback',
 				description: 'Gửi feedback về trải nghiệm sử dụng, gợi ý sửa đổi',
 				details: [
-					<Link href="https://forms.gle/TR5ihBU7ZT7j4oVH9">Bấm vào đây để tới trang feedback</Link>
+					<Link href="https://forms.gle/TR5ihBU7ZT7j4oVH9" key="feedback-link">Bấm vào đây để tới trang feedback</Link>
 				],
 			},
 		],
@@ -247,10 +242,10 @@ export default function GuidesPage() {
 	const [activeTopicId, setActiveTopicId] = useState<string>('overview');
 	const [searchQuery, setSearchQuery] = useState<string>('');
 	const [loading, setLoading] = useState<boolean>(true);
+	const [showDetailMobile, setShowDetailMobile] = useState<boolean>(false);
 
 	// Lấy thông tin user hiện tại từ Backend
 	useEffect(() => {
-
 		const token = localStorage.getItem('access_token');
 		if (!token) return;
 
@@ -286,10 +281,15 @@ export default function GuidesPage() {
 	const activeTopic =
 		visibleTopics.find((t) => t.id === activeTopicId) || visibleTopics[0] || GUIDE_TOPICS[0];
 
+	const handleSelectTopic = (id: string) => {
+		setActiveTopicId(id);
+		setShowDetailMobile(true);
+	};
+
 	return (
 		<div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
-			{/* DANH SÁCH MỤC (Ở GIỮA) */}
-			<div className="w-full sm:w-[320px] md:w-[380px] shrink-0 border-r border-border flex flex-col h-full bg-background/50">
+			{/* DANH SÁCH MỤC (BÊN TRÁI) */}
+			<div className={`w-full sm:w-[320px] md:w-[380px] shrink-0 border-r border-border flex-col h-full bg-background/50 ${showDetailMobile ? 'hidden sm:flex' : 'flex'}`}>
 				{/* Header Cột 2 */}
 				<div className="p-4 border-b border-border space-y-3">
 					<h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
@@ -319,7 +319,7 @@ export default function GuidesPage() {
 						return (
 							<button
 								key={topic.id}
-								onClick={() => setActiveTopicId(topic.id)}
+								onClick={() => handleSelectTopic(topic.id)}
 								className={`w-full text-left p-4 flex items-center justify-between transition-colors relative ${isSelected
 									? 'bg-muted/70 font-semibold'
 									: 'hover:bg-muted/30 text-muted-foreground hover:text-foreground'
@@ -368,10 +368,19 @@ export default function GuidesPage() {
 				</div>
 			</div>
 
-			{/* NỘI DUNG CHI TIẾT (BÊN TAY PHẢI) */}
-			<div className="flex-1 h-full overflow-y-auto bg-background">
+			{/* NỘI DUNG CHI TIẾT (BÊN PHẢI) */}
+			<div className={`flex-1 h-full overflow-y-auto bg-background ${showDetailMobile ? 'block' : 'hidden sm:block'}`}>
 				{activeTopic ? (
 					<div className="max-w-3xl p-6 md:p-10 space-y-8">
+						{/* Nút quay lại trên Mobile */}
+						<button
+							onClick={() => setShowDetailMobile(false)}
+							className="sm:hidden inline-flex p-2 rounded-full bg-white dark:bg-neutral-900/80 text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-neutral-800 transition-all border border-zinc-200 dark:border-neutral-800 shadow-sm"
+						>
+							<ArrowLeft className="w-4 h-4" />
+							{/* Quay lại danh sách */}
+						</button>
+
 						{/* Title phần chi tiết */}
 						<div className="pb-6 border-b border-border">
 							<div className="flex items-center gap-2 text-primary font-medium text-sm mb-1">
@@ -396,7 +405,7 @@ export default function GuidesPage() {
 										{section.description}
 									</p>
 
-									{/* Các bước hướng dẫn từng dòng (nếu có) */}
+									{/* Các bước hướng dẫn từng dòng */}
 									{section.details && section.details.length > 0 && (
 										<ul className="mt-3 space-y-2 pt-2 border-t border-border/40 text-xs text-muted-foreground">
 											{section.details.map((detail, dIdx) => (

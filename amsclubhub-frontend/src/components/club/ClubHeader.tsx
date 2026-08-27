@@ -19,7 +19,7 @@ export default function ClubHeader({
 }: ClubHeaderProps) {
 	return (
 		<div className="w-full space-y-3 font-sans text-zinc-900 dark:text-white">
-			{/* 1. TOP BAR / NÚT QUAY VỀ TRANG CHỦ */}
+			{/* TOP BAR / NÚT QUAY VỀ TRANG CHỦ */}
 			<div className="flex items-center gap-4 py-1 px-1">
 				<Link
 					href="/"
@@ -39,7 +39,7 @@ export default function ClubHeader({
 				</div>
 			</div>
 
-			{/* 2. KHU VỰC HEADER (BANNER + LOGO + THÔNG TIN) */}
+			{/* KHU VỰC HEADER (BANNER + LOGO + THÔNG TIN) */}
 			<div className="w-full bg-white dark:bg-black rounded-3xl border border-zinc-200 dark:border-neutral-800 shadow-lg dark:shadow-2xl overflow-hidden transition-colors">
 				{/* Banner */}
 				<div className="relative w-full aspect-[3/1] sm:aspect-[16/5] bg-zinc-100 dark:bg-neutral-900 overflow-hidden">
