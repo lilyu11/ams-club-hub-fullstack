@@ -34,11 +34,8 @@ app = FastAPI(
 origins = [
 	"http://localhost:3000",    # React / Next.js mặc định
 	"http://localhost:5173",    # Vite (React / Vue) mặc định
-	"http://localhost:8080",    # Vue CLI / Flutter Web
-	"http://127.0.0.1:3000",
-	"http://127.0.0.1:5173",
-	"http://127.0.0.1:8080",
 	"https://ams-club-hub.hadung29112009.workers.dev/",
+	"*"							# Mở cho tất cả tên miền
 ]
 
 # TÍCH HỢP CORS MIDDLEWARE VÀO FASTAPI
