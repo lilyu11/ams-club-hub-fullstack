@@ -11,8 +11,13 @@ ALGORITHM = "HS256"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-	# Kiểm tra mật khẩu user nhập có khớp với Hash trong DB không
-	return pwd_context.verify(plain_password, hashed_password)
+	try:
+		# Cắt 72 bytes chuẩn UTF-8 để tương thích với tất cả phiên bản bcrypt trên Render
+		safe_password = plain_password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+		return pwd_context.verify(safe_password, hashed_password)
+	except Exception as e:
+		print(f"Lỗi verify: {e}")
+		return False
 
 
 def get_password_hash(password: str) -> str:
