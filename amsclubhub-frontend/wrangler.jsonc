@@ -10,5 +10,9 @@
     "directory": ".vercel/output/static",
     "binding": "ASSETS",
     "not_found_handling": "none"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
   }
 }
