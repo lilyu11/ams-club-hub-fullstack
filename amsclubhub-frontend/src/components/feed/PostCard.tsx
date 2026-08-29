@@ -191,7 +191,10 @@ export default function PostCard({
 		<article className="p-4 border-b border-border hover:bg-muted/20 transition cursor-pointer relative">
 			<div className="flex gap-3">
 				{/* Logo/Avatar CLB */}
-				<Link href={`/clubs/${post.club_id}`} className="shrink-0" onClick={(e) => e.stopPropagation()}>
+				<Link href={`/clubs/${post.club_id}`}
+					prefetch={false}
+					className="shrink-0"
+					onClick={(e) => e.stopPropagation()}>
 					{post.club_logo ? (
 						<img
 							src={post.club_logo}
@@ -212,6 +215,7 @@ export default function PostCard({
 						<div className="flex items-center gap-1.5 flex-wrap text-xs">
 							<Link
 								href={`/clubs/${post.club_id}`}
+								prefetch={false}
 								className="font-bold text-foreground hover:underline truncate"
 								onClick={(e) => e.stopPropagation()}
 							>
@@ -272,7 +276,9 @@ export default function PostCard({
 					</div>
 
 					{/* Tiêu đề & Nội dung */}
-					<Link href={`/posts/${post.id}`} className="block mt-1 space-y-1">
+					<Link href={`/posts/${post.id}`}
+						prefetch={false}
+						className="block mt-1 space-y-1">
 						<h2 className="text-sm font-bold text-foreground leading-snug">{post.title}</h2>
 						{post.content && (
 							<p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed whitespace-pre-line">
@@ -300,8 +306,8 @@ export default function PostCard({
 								onClick={handleRemindMe}
 								disabled={isLoadingReminder || isReminded}
 								className={`flex items-center gap-1 sm:gap-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full transition font-medium sm:font-semibold text-[11px] sm:text-xs whitespace-nowrap shrink-0 ${isReminded
-										? 'bg-primary/10 text-primary border border-primary/20 opacity-90 cursor-not-allowed'
-										: 'hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border'
+									? 'bg-primary/10 text-primary border border-primary/20 opacity-90 cursor-not-allowed'
+									: 'hover:bg-primary/10 hover:text-primary text-muted-foreground border border-border'
 									}`}
 							>
 								{isReminded ? (
