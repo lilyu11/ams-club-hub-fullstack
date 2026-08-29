@@ -30,7 +30,7 @@ const sanitizeImageUrl = (url: string | null | undefined, defaultUrl: string) =>
 };
 
 export default function ClubDetailPage() {
-	// 1. Quản lý State Toast ở File Cha
+	// Quản lý State Toast ở File Cha
 	const [toastConfig, setToastConfig] = useState<{ message: string; type?: 'success' | 'error' } | null>(null);
 
 	const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -104,12 +104,16 @@ export default function ClubDetailPage() {
 		if (!clubId) return;
 		const initData = async () => {
 			try {
-				// Tải thông tin người dùng hiện tại
-				try {
-					const userRes = await api.get('/users/me');
-					setCurrentUser(userRes.data);
-				} catch (e) {
-					console.log('Chưa kết nối API /users/me.');
+
+				const token = localStorage.getItem('access_token');
+				if (token) {
+					// Tải thông tin người dùng hiện tại
+					try {
+						const userRes = await api.get('/users/me');
+						setCurrentUser(userRes.data);
+					} catch (e) {
+						console.log('Chưa kết nối API /users/me.');
+					}
 				}
 
 				// Tải thông tin CLB
