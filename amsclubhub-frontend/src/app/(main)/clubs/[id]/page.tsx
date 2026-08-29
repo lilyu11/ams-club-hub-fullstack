@@ -1,6 +1,10 @@
 'use client';
 export const runtime = 'edge';
 
+export function generateStaticParams() {
+	return [{ id: 'placeholder' }];
+}
+
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
