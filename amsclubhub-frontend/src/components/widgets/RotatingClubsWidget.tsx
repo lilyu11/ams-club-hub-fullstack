@@ -107,7 +107,7 @@ export default function RotatingClubsWidget() {
 								</div>
 
 								<Link
-									href={`/clubs/${club.id}/`}
+									href={`/clubs/${club.id}`}
 									className="text-xs bg-primary text-primary-foreground font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition shrink-0 inline-flex items-center justify-center"
 								>
 									Xem thêm

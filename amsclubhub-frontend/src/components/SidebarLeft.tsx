@@ -102,7 +102,7 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 							}
 
 							// Các trang khác trùng khớp hoàn toàn hoặc là route con dạng /item/sub-route
-							return pathname === item.href || pathname.startsWith(`${item.href}/`);
+							return pathname === item.href || pathname.startsWith(`${item.href}`);
 						})();
 
 						return (
