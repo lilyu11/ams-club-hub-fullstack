@@ -4,10 +4,10 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev",
-		"build": "npx @cloudflare/next-on-pages",
+		"build": "next build",
+   		"pages:build": "npx @cloudflare/next-on-pages",
 		"start": "next start",
-		"lint": "eslint",
-		"pages:build": "npx @cloudflare/next-on-pages"
+		"lint": "eslint"
 	},
 	"dependencies": {
 		"axios": "^1.19.0",
