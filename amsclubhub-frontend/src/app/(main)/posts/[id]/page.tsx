@@ -1,6 +1,4 @@
 'use client';
-export const runtime = 'edge';
-export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
@@ -300,7 +298,7 @@ export default function PostDetailPage({
 			<article className="p-4 sm:p-6 space-y-4">
 				{/* Header CLB */}
 				<div className="flex items-center gap-3">
-					<Link href={`/clubs/${clubId}`} className="shrink-0">
+					<Link href={`/clubs/${clubId}/`} className="shrink-0">
 						{clubLogo ? (
 							<img
 								src={getFullImageUrl(clubLogo)}
@@ -317,7 +315,7 @@ export default function PostDetailPage({
 					<div className="flex-1 min-w-0">
 						<div className="flex items-center gap-1.5 flex-wrap text-xs">
 							<Link
-								href={`/clubs/${clubId}`}
+								href={`/clubs/${clubId}/`}
 								className="font-bold text-foreground hover:underline truncate"
 							>
 								{clubName}

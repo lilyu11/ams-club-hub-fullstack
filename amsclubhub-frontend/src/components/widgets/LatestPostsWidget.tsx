@@ -90,7 +90,7 @@ export default function LatestPostsWidget() {
 					{posts.map((post) => (
 						<Link
 							key={post.id}
-							href={`/posts/${post.id}`}
+							href={`/posts/${post.id}/`}
 							className="block p-2.5 rounded-xl bg-muted/40 hover:bg-muted/80 transition border border-border/40 hover:border-border"
 						>
 							<p className="text-[11px] font-semibold text-primary/90">

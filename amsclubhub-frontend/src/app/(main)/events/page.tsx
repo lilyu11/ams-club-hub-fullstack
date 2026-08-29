@@ -67,8 +67,7 @@ function EventCard({ event, timeBadge }: { event: PostData; timeBadge?: string }
 
   return (
     <Link
-      href={`/posts/${event.id}`}
-      prefetch={false}
+      href={`/posts/${event.id}/`}
       className="group relative bg-white dark:bg-zinc-900/70 hover:bg-slate-50 dark:hover:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-800/80 hover:border-slate-300 dark:hover:border-zinc-700/80 rounded-2xl p-3.5 transition-all duration-200 flex flex-col shadow-sm hover:shadow-md"
     >
       <div className="relative w-full aspect-video sm:aspect-square rounded-xl overflow-hidden bg-zinc-800 mb-3 flex items-center justify-center">
