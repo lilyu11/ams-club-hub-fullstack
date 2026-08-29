@@ -1,0 +1,2 @@
+/posts/*  /posts/[id]  200
+/clubs/*  /clubs/[id]  200
