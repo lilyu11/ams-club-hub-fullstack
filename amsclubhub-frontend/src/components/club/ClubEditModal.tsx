@@ -162,6 +162,8 @@ export default function ClubEditModal({
 			});
 
 			const serverPath =
+				res.data?.image_url ||
+				res.data?.data?.image_url ||
 				res.data?.url ||
 				res.data?.file_path ||
 				res.data?.path ||

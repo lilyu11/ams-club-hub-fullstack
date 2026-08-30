@@ -45,10 +45,11 @@ export default function ImageUpload({
 
 			// Đọc tất cả các dạng key phổ biến mà Backend trả về
 			const rawUrl =
+				res.data?.image_url ||
+				res.data?.data?.image_url ||
 				res.data?.url ||
 				res.data?.file_path ||
 				res.data?.path ||
-				res.data?.image_url ||
 				(res.data?.filename ? `/static/uploads/${res.data.filename}` : null);
 
 			if (rawUrl) {
