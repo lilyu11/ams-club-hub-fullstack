@@ -1,13 +1,15 @@
-import ClubDetailClient from './ClubDetailClient';
+import ClubDetailPage from './ClubDetailPage';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic'
 
 interface PageProps {
-	params: {
+	params: Promise<{
 		id: string;
-	};
+	}>;
 }
 
-export default function ClubPage({ params }: PageProps) {
-	return <ClubDetailClient clubId={params.id} />;
+export default async function ClubPage({ params }: PageProps) {
+	const resolvedParams = await params;
+	return <ClubDetailPage clubId={resolvedParams.id} />;
 }
