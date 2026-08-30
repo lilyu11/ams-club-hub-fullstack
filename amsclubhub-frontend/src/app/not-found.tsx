@@ -16,7 +16,8 @@ export default function NotFound() {
 					Không tìm thấy trang
 				</h2>
 				<p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
-					Đường dẫn bạn đang truy cập không có dữ liệu. Vui lòng kiểm tra lại URL hoặc quay về trang chủ.
+					Chưa có gì đâu bro về tạm trang chủ đã nhé *emoji trái tim*
+					{/* Đường dẫn bạn đang truy cập không có dữ liệu. Vui lòng kiểm tra lại URL hoặc quay về trang chủ. */}
 				</p>
 			</div>
 
