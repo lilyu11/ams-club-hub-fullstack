@@ -32,6 +32,13 @@ class RegisterWithOTPRequest(BaseModel):
     full_name: str
     otp: str
 
+class RegisterWithoutOTP(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    role: str
+    student_id: str
+
 class ForgotPasswordSendOTPRequest(BaseModel):
     email: EmailStr
 
@@ -87,6 +94,32 @@ async def send_otp(data: SendOTPRequest, db: Session = Depends(get_db)):
 
     return {"message": "Mã OTP đã được gửi thành công đến email của bạn!"}
 
+@router.post("/register-without-otp", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+def register_without_otp(data: RegisterWithoutOTP, db: Session = Depends(get_db)):
+    # Kiểm tra email tồn tại trong database không
+    if db.query(User).filter(User.email == data.email).first():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email này đã được sử dụng trong hệ thống..."
+        )
+
+    # Tạo user mới (được kiểm soát role và student_id)
+    hashed_pwd = get_password_hash(data.password)
+    new_user = User(
+        email=data.email,
+        hashed_password=hashed_pwd,
+        full_name=data.full_name,
+        role=data.role,
+        student_id=data.student_id,
+        is_active=True
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return new_user
+
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(data: RegisterWithOTPRequest, db: Session = Depends(get_db)):
@@ -113,7 +146,7 @@ def register(data: RegisterWithOTPRequest, db: Session = Depends(get_db)):
             detail="Mã OTP không chính xác..."
         )
 
-    # Re-check email tồn tại phòng trường hợp ghi đè đồng thời
+    # Kiểm tra email có tồn tại trong database không
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
