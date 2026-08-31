@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 	SMTP_PASSWORD: str = ""
 	EMAILS_FROM_NAME: str = "AmsClubHub"
 	RESEND_API_KEY: str = ""
-	EMAILS_FROM: str = "AmsClubHub <no-reply@ams-club-hub-fullstack.onrender.com>"
+	EMAILS_FROM: str = "AmsClubHub <no-reply@onboarding@resend.dev>"
 	EMAIL_TIMEOUT_SECONDS: float = 10.0
 
 	@property
