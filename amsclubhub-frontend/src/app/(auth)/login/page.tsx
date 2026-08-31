@@ -165,7 +165,7 @@ export default function AuthPage() {
 
 			localStorage.setItem('access_token', response.data.access_token);
 			notify('success', 'Đăng nhập thành công!');
-			setTimeout(() => router.push('/'), 1000);
+			setTimeout(() => router.push('/'), 200);
 		} catch (err: any) {
 			notify('error', err.response?.data?.detail || 'Email hoặc mật khẩu không chính xác...');
 		} finally {

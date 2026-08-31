@@ -25,6 +25,9 @@ class Settings(BaseSettings):
 	SMTP_USER: str = ""
 	SMTP_PASSWORD: str = ""
 	EMAILS_FROM_NAME: str = "AmsClubHub"
+	RESEND_API_KEY: str = ""
+	EMAILS_FROM: str = "AmsClubHub <no-reply@your-verified-domain.com>"
+	EMAIL_TIMEOUT_SECONDS: float = 10.0
 
 	@property
 	def DATABASE_URL(self) -> str:

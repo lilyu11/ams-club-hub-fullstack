@@ -10,13 +10,18 @@ from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User, UserRole
 from app.schemas.auth import Token, UserResponse
-from app.services.email_service import send_otp_email, send_reset_password_otp_email
+from app.services.email_service import send_otp_email, send_reset_password_otp_email, _hash_otp
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# Bộ nhớ tạm lưu mã OTP (Email -> {otp, expires_at})
+# OTP config
+OTP_EXPIRE_MINUTES = 5
+OTP_MAX_ATTEMPTS = 5
+OTP_RESEND_COOLDOWN_SECONDS = 60
+
+# Bộ nhớ tạm lưu mã OTP (Email -> {otp_hash, expires_at, attempts, last_sent_at})
 otp_store = {}
-# Bộ nhớ tạm lưu OTP quên mật khẩu (Email -> {otp, expires_at})
+# Bộ nhớ tạm lưu OTP quên mật khẩu (Email -> {otp_hash, expires_at, attempts, last_sent_at})
 reset_otp_store = {}
 
 
@@ -77,11 +82,24 @@ async def send_otp(data: SendOTPRequest, db: Session = Depends(get_db)):
             detail="Email này đã được sử dụng trong hệ thống..."
         )
 
-    # Tạo mã OTP 6 chữ số và thiết lập thời gian hết hạn 5 phút
+    # Rate limiting: không cho gửi lại trong 60 giây
+    existing = otp_store.get(data.email)
+    if existing:
+        elapsed = datetime.now(timezone.utc) - existing.get("last_sent_at", datetime.now(timezone.utc) - timedelta(days=1))
+        if elapsed < timedelta(seconds=OTP_RESEND_COOLDOWN_SECONDS):
+            wait_seconds = OTP_RESEND_COOLDOWN_SECONDS - int(elapsed.total_seconds())
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Vui lòng chờ {wait_seconds} giây trước khi gửi lại mã OTP."
+            )
+
+    # Tạo mã OTP 6 chữ số và lưu hash thay vì OTP plain text
     otp_code = f"{random.randint(100000, 999999)}"
     otp_store[data.email] = {
-        "otp": otp_code,
-        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=5)
+        "otp": _hash_otp(otp_code),
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES),
+        "attempts": 0,
+        "last_sent_at": datetime.now(timezone.utc)
     }
 
     # Gửi email OTP
@@ -139,11 +157,22 @@ def register(data: RegisterWithOTPRequest, db: Session = Depends(get_db)):
             detail="Mã OTP đã hết hạn... Vui lòng lấy lại mã mới."
         )
 
-    # Kiểm tra mã OTP có chính xác không
-    if stored_data["otp"] != data.otp.strip():
+    # Giới hạn số lần nhập sai OTP
+    if stored_data.get("attempts", 0) >= OTP_MAX_ATTEMPTS:
+        otp_store.pop(data.email, None)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mã OTP không chính xác..."
+            detail="Bạn đã nhập sai quá nhiều lần. Vui lòng gửi lại mã OTP."
+        )
+
+    # Kiểm tra mã OTP có chính xác không (so sánh hash)
+    otp_hash = _hash_otp(data.otp.strip())
+    if stored_data["otp"] != otp_hash:
+        stored_data["attempts"] = stored_data.get("attempts", 0) + 1
+        remaining = OTP_MAX_ATTEMPTS - stored_data["attempts"]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Mã OTP không chính xác... Còn {remaining} lần thử."
         )
 
     # Kiểm tra email có tồn tại trong database không
@@ -209,11 +238,24 @@ async def forgot_password_send_otp(data: ForgotPasswordSendOTPRequest, db: Sessi
             detail="Email này chưa được đăng ký trong hệ thống."
         )
 
-    # Tạo mã OTP 6 chữ số & lưu thời hạn 5 phút
+    # Rate limiting: không cho gửi lại trong 60 giây
+    existing = reset_otp_store.get(data.email)
+    if existing:
+        elapsed = datetime.now(timezone.utc) - existing.get("last_sent_at", datetime.now(timezone.utc) - timedelta(days=1))
+        if elapsed < timedelta(seconds=OTP_RESEND_COOLDOWN_SECONDS):
+            wait_seconds = OTP_RESEND_COOLDOWN_SECONDS - int(elapsed.total_seconds())
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Vui lòng chờ {wait_seconds} giây trước khi gửi lại mã OTP."
+            )
+
+    # Tạo mã OTP 6 chữ số & lưu hash thay vì OTP plain text
     otp_code = f"{random.randint(100000, 999999)}"
     reset_otp_store[data.email] = {
-        "otp": otp_code,
-        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=5)
+        "otp": _hash_otp(otp_code),
+        "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES),
+        "attempts": 0,
+        "last_sent_at": datetime.now(timezone.utc)
     }
 
     # Gửi email OTP
@@ -245,11 +287,22 @@ def forgot_password_reset(data: ForgotPasswordResetRequest, db: Session = Depend
             detail="Mã OTP đã hết hạn. Vui lòng lấy lại mã mới."
         )
 
-    # Kiểm tra OTP đúng
-    if stored_data["otp"] != data.otp.strip():
+    # Giới hạn số lần nhập sai OTP
+    if stored_data.get("attempts", 0) >= OTP_MAX_ATTEMPTS:
+        reset_otp_store.pop(data.email, None)
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Mã OTP không chính xác."
+            detail="Bạn đã nhập sai quá nhiều lần. Vui lòng gửi lại mã OTP."
+        )
+
+    # Kiểm tra OTP đúng (so sánh hash)
+    otp_hash = _hash_otp(data.otp.strip())
+    if stored_data["otp"] != otp_hash:
+        stored_data["attempts"] = stored_data.get("attempts", 0) + 1
+        remaining = OTP_MAX_ATTEMPTS - stored_data["attempts"]
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Mã OTP không chính xác. Còn {remaining} lần thử."
         )
 
     # Validate mật khẩu mới

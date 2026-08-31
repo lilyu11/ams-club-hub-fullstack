@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, String, Text, DateTime, Boolean, Integer, ForeignKey, Enum as SQLEnum
+from sqlalchemy import Column, String, Text, DateTime, Boolean, Integer, ForeignKey, Index, Enum as SQLEnum
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from datetime import timezone
@@ -14,6 +14,10 @@ class PostType(str, Enum):
 
 class CampaignPost(Base):
 	__tablename__ = "campaign_posts"
+	# Index hỗ trợ truy vấn bài viết theo club_id (thường xuyên truy vấn nhất)
+	__table_args__ = (
+		Index("ix_campaign_posts_club_id", "club_id"),
+	)
 
 	id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 	club_id = Column(String(36), ForeignKey("clubs.id", ondelete="CASCADE"), nullable=False)

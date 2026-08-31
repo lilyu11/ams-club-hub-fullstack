@@ -98,63 +98,63 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 	useEffect(() => {
 		if (!isMounted || !clubId) return;
 
-		const initData = async () => {
-			try {
-				if (typeof window !== 'undefined') {
-					const token = localStorage.getItem('access_token');
-					if (token) {
-						try {
-							const userRes = await api.get('/users/me');
-							setCurrentUser(userRes.data);
-						} catch (e) {
-							console.log('Chưa kết nối API /users/me.');
-						}
-					}
-				}
+		const controller = new AbortController();
+		const { signal } = controller;
 
-				const clubRes = await api.get(`/clubs/${clubId}`);
-				const rawClub = clubRes.data;
+		const initData = async () => {
+			// Endpoint tổng hợp trả về club + posts + is_following trong 1 request
+			const requests: Promise<any>[] = [
+				api.get(`/clubs/${clubId}/detail`, { signal }),
+			];
+
+			// Chỉ gọi /users/me nếu thực sự có access_token
+			if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
+				requests.push(api.get('/users/me', { signal }));
+			}
+
+			const [detailRes, userRes] = await Promise.allSettled(requests);
+
+			if (detailRes.status === 'fulfilled') {
+				const { club: rawClub, posts = [], is_following = false } = detailRes.value.data || {};
 
 				setRawClubData(rawClub);
+				setIsFollowing(!!is_following);
+				setPosts(Array.isArray(posts) ? posts : posts?.items || []);
 
-				const rawBanner = rawClub.banner_url || rawClub.banner_urls?.[0];
-				const logo = sanitizeImageUrl(rawClub.logo_url, DEFAULT_AVATAR);
+				const rawBanner = rawClub?.banner_url || rawClub?.banner_urls?.[0];
+				const logo = sanitizeImageUrl(rawClub?.logo_url, DEFAULT_AVATAR);
 				const banner = sanitizeImageUrl(rawBanner, DEFAULT_BANNER);
-				const description = rawClub.description || 'Câu lạc bộ này chưa có mô tả.';
+				const description = rawClub?.description || 'Câu lạc bộ này chưa có mô tả.';
 
-				const processedClub = {
+				setClub({
 					...rawClub,
 					logo_url: logo,
 					banner_url: banner,
-					description: description,
-				};
-
-				setClub(processedClub);
+					description,
+				});
 				setClubFormData(mapRawDataToForm(rawClub));
+			}
 
-				try {
-					const postsRes = await api.get('/posts', {
-						params: { club_identifier: clubId },
-					});
-					setPosts(Array.isArray(postsRes.data) ? postsRes.data : postsRes.data?.items || []);
-				} catch (e) {
-					console.log('Chưa có bài đăng nào.');
-				}
+			if (userRes?.status === 'fulfilled') {
+				setCurrentUser(userRes.value.data);
+			}
 
-				try {
-					const followRes = await api.get(`/clubs/${clubId}/is-following`);
-					setIsFollowing(!!followRes.data?.is_following);
-				} catch (e) {
-					console.log('Chưa có endpoint follow.');
-				}
-			} catch (err) {
-				console.error('Lỗi tải dữ liệu CLB:', err);
-			} finally {
+			if (!signal.aborted) {
 				setLoading(false);
 			}
 		};
 
-		initData();
+		initData().catch((err) => {
+			if (err?.code !== 'ERR_CANCELED') {
+				console.error('Lỗi tải dữ liệu CLB:', err);
+			}
+			if (!signal.aborted) {
+				setLoading(false);
+			}
+		});
+
+		// Hủy các request khi người dùng rời trang nhanh
+		return () => controller.abort();
 	}, [clubId, router, isMounted]);
 
 	if (!isMounted || loading) {

@@ -3,11 +3,15 @@ from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
+from pydantic import BaseModel
+
 from app.core.database import get_db
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_optional_user
 from app.models.user import User, UserRole
 from app.models.club import Club, ClubFollower
+from app.models.campaign_post import CampaignPost
 from app.schemas.club import ClubCreate, ClubUpdate, ClubResponse, ClubDeleteConfirm, ClubFollowResponse
+from app.schemas.campaign_post import CampaignPostResponse
 from app.core.security import verify_password
 from app.schemas.auth import UserResponse
 
@@ -91,6 +95,40 @@ def get_club_by_id(club_id: str, db: Session = Depends(get_db)):
   # Lấy thông tin chi tiết của câu lạc bộ theo ID
   club = get_club_by_identifier(club_id, db)
   return club
+
+
+class ClubDetailResponse(BaseModel):
+    club: ClubResponse
+    posts: List[CampaignPostResponse]
+    is_following: bool = False
+
+
+@router.get("/{club_id}/detail", response_model=ClubDetailResponse)
+def get_club_detail(
+    club_id: str,
+    skip: int = 0,
+    limit: int = 20,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_optional_user),
+):
+    """
+    Endpoint tổng hợp trả về club, posts, is_following trong 1 request.
+    Giảm số round-trip từ 3-4 request xuống còn 1 request phía client.
+    is_following chỉ tính khi có access_token hợp lệ.
+    """
+    club = get_club_by_identifier(club_id, db)
+
+    posts = db.query(CampaignPost).filter(CampaignPost.club_id == club.id)\
+        .order_by(CampaignPost.created_at.desc()).offset(skip).limit(limit).all()
+
+    is_following = False
+    if current_user:
+        is_following = db.query(ClubFollower).filter(
+            ClubFollower.user_id == current_user.id,
+            ClubFollower.club_id == club.id
+        ).first() is not None
+
+    return ClubDetailResponse(club=club, posts=posts, is_following=is_following)
 
 
 @router.put("/{club_id}", response_model=ClubResponse, status_code=status.HTTP_200_OK)

@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
@@ -43,3 +44,22 @@ def get_current_user(
 	)
 
 	return user
+
+
+def get_optional_user(
+	db: Session = Depends(get_db),
+	token: str = Depends(oauth2_scheme)
+) -> Optional[User]:
+	# Giống get_current_user nhưng trả về None nếu token thiếu/không hợp lệ
+	# (dùng cho endpoint công khai vẫn có follow status khi đăng nhập)
+	try:
+		payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+		user_id: str = payload.get("sub")
+		if user_id is None:
+			return None
+		user = db.query(User).filter(User.id == user_id).first()
+		if user is None or not user.is_active:
+			return None
+		return user
+	except JWTError:
+		return None
