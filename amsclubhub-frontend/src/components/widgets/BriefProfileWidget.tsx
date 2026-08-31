@@ -26,6 +26,15 @@ export default function BriefProfileWidget() {
 	const router = useRouter();
 
 	useEffect(() => {
+		const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+
+		// Khách chưa đăng nhập: không gọi /users/me (tránh 401 thừa mỗi lần load trang)
+		if (!token) {
+			setUser(null);
+			setLoading(false);
+			return;
+		}
+
 		const fetchCurrentUser = async () => {
 			try {
 				const res = await api.get('/users/me');

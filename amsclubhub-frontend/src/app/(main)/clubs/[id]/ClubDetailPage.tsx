@@ -102,41 +102,61 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 		const { signal } = controller;
 
 		const initData = async () => {
-			// Endpoint tổng hợp trả về club + posts + is_following trong 1 request
-			const requests: Promise<any>[] = [
-				api.get(`/clubs/${clubId}/detail`, { signal }),
-			];
+			const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
 
 			// Chỉ gọi /users/me nếu thực sự có access_token
-			if (typeof window !== 'undefined' && localStorage.getItem('access_token')) {
-				requests.push(api.get('/users/me', { signal }));
+			const userPromise: Promise<any> = token
+				? api.get('/users/me', { signal }).catch(() => null)
+				: Promise.resolve(null);
+
+			// Ưu tiên endpoint tổng hợp /detail, fallback sang các request riêng lẻ nếu backend chưa có endpoint này
+			let detail: any = await api
+				.get(`/clubs/${clubId}/detail`, { signal })
+				.then((r) => r.data)
+				.catch(() => null);
+
+			if (!detail) {
+				const [clubR, postsR, followR] = await Promise.allSettled([
+					api.get(`/clubs/${clubId}`, { signal }),
+					api.get('/posts', { params: { club_identifier: clubId }, signal }),
+					api.get(`/clubs/${clubId}/is-following`, { signal }),
+				]);
+
+				detail = {
+					club: clubR.status === 'fulfilled' ? clubR.value.data : null,
+					posts:
+						postsR.status === 'fulfilled'
+							? Array.isArray(postsR.value.data)
+								? postsR.value.data
+								: postsR.value.data?.items || []
+							: [],
+					is_following:
+						followR.status === 'fulfilled' ? !!followR.value.data?.is_following : false,
+				};
 			}
 
-			const [detailRes, userRes] = await Promise.allSettled(requests);
+			const { club: rawClub, posts = [], is_following = false } = detail || {};
 
-			if (detailRes.status === 'fulfilled') {
-				const { club: rawClub, posts = [], is_following = false } = detailRes.value.data || {};
+			setRawClubData(rawClub);
+			setIsFollowing(!!is_following);
+			setPosts(Array.isArray(posts) ? posts : posts?.items || []);
 
-				setRawClubData(rawClub);
-				setIsFollowing(!!is_following);
-				setPosts(Array.isArray(posts) ? posts : posts?.items || []);
+			const rawBanner = rawClub?.banner_url || rawClub?.banner_urls?.[0];
+			const logo = sanitizeImageUrl(rawClub?.logo_url, DEFAULT_AVATAR);
+			const banner = sanitizeImageUrl(rawBanner, DEFAULT_BANNER);
+			const description = rawClub?.description || 'Câu lạc bộ này chưa có mô tả.';
 
-				const rawBanner = rawClub?.banner_url || rawClub?.banner_urls?.[0];
-				const logo = sanitizeImageUrl(rawClub?.logo_url, DEFAULT_AVATAR);
-				const banner = sanitizeImageUrl(rawBanner, DEFAULT_BANNER);
-				const description = rawClub?.description || 'Câu lạc bộ này chưa có mô tả.';
+			setClub({
+				...rawClub,
+				logo_url: logo,
+				banner_url: banner,
+				description,
+			});
+			setClubFormData(mapRawDataToForm(rawClub));
 
-				setClub({
-					...rawClub,
-					logo_url: logo,
-					banner_url: banner,
-					description,
-				});
-				setClubFormData(mapRawDataToForm(rawClub));
-			}
-
-			if (userRes?.status === 'fulfilled') {
-				setCurrentUser(userRes.value.data);
+			const userData = await userPromise;
+			if (userData) {
+				setCurrentUser(userData.data);
 			}
 
 			if (!signal.aborted) {

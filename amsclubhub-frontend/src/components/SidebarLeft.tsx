@@ -59,7 +59,8 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 		};
 
 		fetchUser();
-	}, [pathname]);
+		// Chỉ fetch khi mount (tránh gọi /users/me lại mỗi lần chuyển trang)
+	}, []);
 
 	// Tạo danh sách nav dynamic
 	const navItems = [...BASE_NAV_ITEMS];

@@ -6,8 +6,21 @@ from email.mime.multipart import MIMEMultipart
 from app.core.config import settings
 
 
+# Placeholder gợi ý trong .env.example — không bao giờ được xác minh, phải bỏ qua
+_PLACEHOLDER_DOMAIN = "your-verified-domain.com"
+
+
 def _sender_address() -> str:
-	return settings.EMAILS_FROM or f"{settings.EMAILS_FROM_NAME} <{settings.SMTP_USER}>"
+	"""
+	- Dùng EMAILS_FROM nếu là domain thật đã xác minh (không phải placeholder).
+	- Với Resend: fallback về onboarding@resend.dev (test sender tích hợp, không cần xác minh domain).
+	- Với SMTP: fallback về EMAILS_FROM_NAME <SMTP_USER>.
+	"""
+	if settings.EMAILS_FROM and _PLACEHOLDER_DOMAIN not in settings.EMAILS_FROM:
+		return settings.EMAILS_FROM
+	if settings.RESEND_API_KEY:
+		return f"{settings.EMAILS_FROM_NAME} <onboarding@resend.dev>"
+	return f"{settings.EMAILS_FROM_NAME} <{settings.SMTP_USER}>"
 
 
 def _hash_otp(otp_code: str) -> str:
