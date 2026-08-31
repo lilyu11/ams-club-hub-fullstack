@@ -22,7 +22,7 @@ class Settings(BaseSettings):
 	# SMTP Config
 	SMTP_HOST: str = "smtp.gmail.com"
 	SMTP_PORT: int = 587
-	SMTP_USER: str = ""
+	SMTP_USER: str = "hadung29112009@gmail.com"
 	SMTP_PASSWORD: str = ""
 	EMAILS_FROM_NAME: str = "AmsClubHub"
 	RESEND_API_KEY: str = ""
