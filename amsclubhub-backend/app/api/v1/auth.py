@@ -107,7 +107,7 @@ async def send_otp(data: SendOTPRequest, db: Session = Depends(get_db)):
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Không thể gửi mã OTP...Vui lòng kiểm tra lại email."
+            detail="Không thể gửi mã OTP... Vui lòng kiểm tra lại thông tin."
         )
 
     return {"message": "Mã OTP đã được gửi thành công đến email của bạn!"}

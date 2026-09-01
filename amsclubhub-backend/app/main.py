@@ -34,7 +34,7 @@ app = FastAPI(
 origins = [
 	"http://localhost:3000",    # React / Next.js mặc định
 	"http://localhost:5173",    # Vite (React / Vue) mặc định
-	"https://ams-club-hub.hadung29112009.workers.dev/",
+	"https://ams-club-hub.hadung29112009.workers.dev",  # Cloudflare Workers (production)
 	"*"							# Mở cho tất cả tên miền
 ]
 

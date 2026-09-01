@@ -25,7 +25,10 @@ class Settings(BaseSettings):
 	SMTP_USER: str = "hadung29112009@gmail.com"
 	SMTP_PASSWORD: str = ""
 	EMAILS_FROM_NAME: str = "AmsClubHub"
-	RESEND_API_KEY: str = ""
+	# Brevo Transactional API Key (https://app.brevo.com/settings/keys/api)
+	BREVO_API_KEY: str = ""
+	# Sender hiển thị, dùng cho Brevo/SMTP (nên là domain ĐÃ XÁC MINH ở Brevo)
+	# Định dạng: "Tên <email@domain-verified.com>". Để trống thì fallback về SMTP.
 	EMAILS_FROM: str = "AmsClubHub <no-reply@ams-club-hub-fullstack.onrender.com>"
 	EMAIL_TIMEOUT_SECONDS: float = 10.0
 

@@ -9,56 +9,69 @@ from app.core.config import settings
 # Placeholder gợi ý trong .env.example — không bao giờ được xác minh, phải bỏ qua
 _PLACEHOLDER_DOMAIN = "your-verified-domain.com"
 
+BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
-def _sender_address() -> str:
-	"""
-	- Dùng EMAILS_FROM nếu là domain thật đã xác minh (không phải placeholder).
-	- Với Resend: fallback về onboarding@resend.dev (test sender tích hợp, không cần xác minh domain).
-	- Với SMTP: fallback về EMAILS_FROM_NAME <SMTP_USER>.
-	"""
+
+def sender_parts() -> tuple[str, str]:
+	# Tách (name, email) từ settings.EMAILS_FROM dạng "Tên <email@domain.com>"
+	# Fallback về EMAILS_FROM_NAME <SMTP_USER> nếu EMAILS_FROM để trống/placeholder
+	name, email = settings.EMAILS_FROM_NAME, ""
 	if settings.EMAILS_FROM and _PLACEHOLDER_DOMAIN not in settings.EMAILS_FROM:
-		return settings.EMAILS_FROM
-	if settings.RESEND_API_KEY:
-		return f"{settings.EMAILS_FROM_NAME} <onboarding@resend.dev>"
-	return f"{settings.EMAILS_FROM_NAME} <{settings.SMTP_USER}>"
+		if "<" in settings.EMAILS_FROM and ">" in settings.EMAILS_FROM:
+			email = settings.EMAILS_FROM[settings.EMAILS_FROM.index("<") + 1:settings.EMAILS_FROM.index(">")].strip()
+			parsed_name = settings.EMAILS_FROM[:settings.EMAILS_FROM.index("<")].strip()
+			if parsed_name:
+				name = parsed_name
+		else:
+			email = settings.EMAILS_FROM.strip()
+	if not email:
+		email = settings.SMTP_USER
+	return name, email
 
 
-def _hash_otp(otp_code: str) -> str:
-	"""Hash OTP using SHA-256 for secure storage."""
+def sender_address() -> str:
+	# Dạng "Tên <email>" dùng cho SMTP
+	name, email = sender_parts()
+	return f"{name} <{email}>"
+
+
+def hash_otp(otp_code: str) -> str:
+	# Hash OTP dùng SHA-256 để bảo mật
 	return hashlib.sha256(otp_code.encode()).hexdigest()
 
 
-def _make_idempotency_key(to_email: str, subject: str) -> str:
-	"""Generate deterministic idempotency key to prevent duplicate sends."""
+def make_idempotency_key(to_email: str, subject: str) -> str:
+	# Tạo mã định danh để chỉ gửi được 1 OTP duy nhất trong 1p
 	import time
-	raw = f"{to_email}:{subject}:{int(time.time()) // 60}"  # Changes every minute
+	raw = f"{to_email}:{subject}:{int(time.time()) // 60}"  # Đổi mỗi phút
 	return hashlib.sha256(raw.encode()).hexdigest()[:32]
 
 
-async def _send_html_email(to_email: str, subject: str, html_content: str, idempotency_key: str | None = None) -> bool:
-	"""Send through Resend when configured, otherwise retain Gmail SMTP fallback."""
-	if settings.RESEND_API_KEY:
+async def send_html_email(to_email: str, subject: str, html_content: str, idempotency_key: str | None = None) -> bool:
+	# Gửi qua Brevo, fallback về Gmail SMTP
+	if settings.BREVO_API_KEY:
 		try:
-			headers = {"Authorization": f"Bearer {settings.RESEND_API_KEY}"}
+			sender_name, sender_email = sender_parts()
+			headers = {"api-key": settings.BREVO_API_KEY, "Content-Type": "application/json"}
 			if idempotency_key:
-				headers["Idempotency-Key"] = idempotency_key
+				headers["X-Idempotency-Key"] = idempotency_key
 			async with httpx.AsyncClient(timeout=settings.EMAIL_TIMEOUT_SECONDS) as client:
 				response = await client.post(
-					"https://api.resend.com/emails",
+					BREVO_API_URL,
 					headers=headers,
 					json={
-						"from": _sender_address(),
-						"to": [to_email],
+						"sender": {"name": sender_name, "email": sender_email},
+						"to": [{"email": to_email}],
 						"subject": subject,
-						"html": html_content,
+						"htmlContent": html_content,
 					},
 				)
-				if response.status_code != 200:
-					print(f"[Resend] Error {response.status_code}: {response.text}")
+				if response.status_code not in (200, 201):
+					print(f"[Brevo] Error {response.status_code}: {response.text}")
 					return False
 			return True
 		except Exception as exc:
-			print(f"[Resend] Failed to send email to {to_email}: {exc}")
+			print(f"[Brevo] Failed to send email to {to_email}: {exc}")
 			return False
 
 	if not settings.SMTP_USER or not settings.SMTP_PASSWORD:
@@ -68,7 +81,7 @@ async def _send_html_email(to_email: str, subject: str, html_content: str, idemp
 	try:
 		msg = MIMEMultipart("alternative")
 		msg["Subject"] = subject
-		msg["From"] = _sender_address()
+		msg["From"] = sender_address()
 		msg["To"] = to_email
 		msg.attach(MIMEText(html_content, "html", "utf-8"))
 		with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=settings.EMAIL_TIMEOUT_SECONDS) as server:
@@ -77,14 +90,14 @@ async def _send_html_email(to_email: str, subject: str, html_content: str, idemp
 			server.sendmail(settings.SMTP_USER, to_email, msg.as_string())
 		return True
 	except Exception as exc:
-		print(f"[SMTP] Failed to send email to {to_email}: {exc}")
+		print(f"[SMTP] Xảy ra lỗi khi gửi email tới {to_email}: {exc}")
 		return False
 
 
 async def send_reminder_email(to_email: str, user_name: str, post_title: str, club_name: str, deadline_str: str, action_url: str) -> bool:
-	"""Gửi email nhắc nhở qua Resend (HTTPS) hoặc SMTP fallback."""
+	# Gửi email nhắc nhở qua Brevo (HTTPS) hoặc SMTP fallback
 	subject = f"⏰ [AmsClubHub] NHẮC NHỞ: SẮP HẾT HẠN ĐIỀN ĐƠN/ĐĂNG KÝ {post_title}!"
-	idempotency_key = _make_idempotency_key(to_email, subject)
+	idempotency_key = make_idempotency_key(to_email, subject)
 
 	html_content = f"""
 	<html>
@@ -110,13 +123,13 @@ async def send_reminder_email(to_email: str, user_name: str, post_title: str, cl
 		</body>
 	</html>
 	"""
-	return await _send_html_email(to_email, subject, html_content, idempotency_key)
+	return await send_html_email(to_email, subject, html_content, idempotency_key)
 
 
 async def send_otp_email(to_email: str, otp_code: str) -> bool:
-	"""Gửi mã OTP xác nhận đăng ký tài khoản qua Resend (HTTPS) hoặc SMTP fallback."""
+	# Gửi mã OTP xác nhận đăng ký tài khoản qua Brevo (HTTPS) hoặc SMTP fallback
 	subject = "🔑 [AmsClubHub] Mã xác nhận đăng ký tài khoản"
-	idempotency_key = _make_idempotency_key(to_email, subject)
+	idempotency_key = make_idempotency_key(to_email, subject)
 
 	html_content = f"""
 	<html>
@@ -137,13 +150,13 @@ async def send_otp_email(to_email: str, otp_code: str) -> bool:
 		</body>
 	</html>
 	"""
-	return await _send_html_email(to_email, subject, html_content, idempotency_key)
+	return await send_html_email(to_email, subject, html_content, idempotency_key)
 
 
 async def send_reset_password_otp_email(to_email: str, otp_code: str) -> bool:
-	"""Gửi mã OTP khôi phục mật khẩu qua Resend (HTTPS) hoặc SMTP fallback."""
+	# Gửi mã OTP khôi phục mật khẩu qua Brevo (HTTPS) hoặc SMTP fallback
 	subject = "🔐 [AmsClubHub] Yêu cầu đặt lại mật khẩu"
-	idempotency_key = _make_idempotency_key(to_email, subject)
+	idempotency_key = make_idempotency_key(to_email, subject)
 
 	html_content = f"""
 	<html>
@@ -164,4 +177,4 @@ async def send_reset_password_otp_email(to_email: str, otp_code: str) -> bool:
 		</body>
 	</html>
 	"""
-	return await _send_html_email(to_email, subject, html_content, idempotency_key)
+	return await send_html_email(to_email, subject, html_content, idempotency_key)

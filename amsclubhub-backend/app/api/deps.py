@@ -10,7 +10,8 @@ from app.core.security import ALGORITHM
 from app.models.user import User
 
 # OAuth2 Scheme giúp Swagger UI xuất hiện nút "Authorize"
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
+# auto_error=False: thiếu header Authorization trả về None thay vì raise 401
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
 def get_current_user(
@@ -23,6 +24,8 @@ def get_current_user(
 		detail="Token không hợp lệ hoặc đã hết hạn.",
 		headers={"WWW-Authenticate": "Bearer"},
 	)
+	if not token:
+		raise credentials_exception
 	try:
 		# Giải mã JWT Token bằng SECRET_KEY
 		payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
@@ -52,6 +55,8 @@ def get_optional_user(
 ) -> Optional[User]:
 	# Giống get_current_user nhưng trả về None nếu token thiếu/không hợp lệ
 	# (dùng cho endpoint công khai vẫn có follow status khi đăng nhập)
+	if not token:
+		return None
 	try:
 		payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
 		user_id: str = payload.get("sub")
