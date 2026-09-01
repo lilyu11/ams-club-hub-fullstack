@@ -10,7 +10,7 @@ from app.core.database import get_db
 from app.core.security import get_password_hash, verify_password, create_access_token
 from app.models.user import User, UserRole
 from app.schemas.auth import Token, UserResponse
-from app.services.email_service import send_otp_email, send_reset_password_otp_email, _hash_otp
+from app.services.email_service import send_otp_email, send_reset_password_otp_email, hash_otp
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -96,7 +96,7 @@ async def send_otp(data: SendOTPRequest, db: Session = Depends(get_db)):
     # Tạo mã OTP 6 chữ số và lưu hash thay vì OTP plain text
     otp_code = f"{random.randint(100000, 999999)}"
     otp_store[data.email] = {
-        "otp": _hash_otp(otp_code),
+        "otp": hash_otp(otp_code),
         "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES),
         "attempts": 0,
         "last_sent_at": datetime.now(timezone.utc)
@@ -166,7 +166,7 @@ def register(data: RegisterWithOTPRequest, db: Session = Depends(get_db)):
         )
 
     # Kiểm tra mã OTP có chính xác không (so sánh hash)
-    otp_hash = _hash_otp(data.otp.strip())
+    otp_hash = hash_otp(data.otp.strip())
     if stored_data["otp"] != otp_hash:
         stored_data["attempts"] = stored_data.get("attempts", 0) + 1
         remaining = OTP_MAX_ATTEMPTS - stored_data["attempts"]
@@ -252,7 +252,7 @@ async def forgot_password_send_otp(data: ForgotPasswordSendOTPRequest, db: Sessi
     # Tạo mã OTP 6 chữ số & lưu hash thay vì OTP plain text
     otp_code = f"{random.randint(100000, 999999)}"
     reset_otp_store[data.email] = {
-        "otp": _hash_otp(otp_code),
+        "otp": hash_otp(otp_code),
         "expires_at": datetime.now(timezone.utc) + timedelta(minutes=OTP_EXPIRE_MINUTES),
         "attempts": 0,
         "last_sent_at": datetime.now(timezone.utc)
@@ -296,7 +296,7 @@ def forgot_password_reset(data: ForgotPasswordResetRequest, db: Session = Depend
         )
 
     # Kiểm tra OTP đúng (so sánh hash)
-    otp_hash = _hash_otp(data.otp.strip())
+    otp_hash = hash_otp(data.otp.strip())
     if stored_data["otp"] != otp_hash:
         stored_data["attempts"] = stored_data.get("attempts", 0) + 1
         remaining = OTP_MAX_ATTEMPTS - stored_data["attempts"]
