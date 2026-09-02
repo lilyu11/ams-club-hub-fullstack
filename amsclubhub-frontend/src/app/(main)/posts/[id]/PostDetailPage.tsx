@@ -302,38 +302,53 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 			</div>
 
 			<article className="p-4 sm:p-6 space-y-4">
-				{/* Header CLB */}
-				<div className="flex items-center gap-3">
-					<Link href={`/clubs/${clubId}`} prefetch={false} className="shrink-0">
-						{clubLogo ? (
-							<img
-								src={getFullImageUrl(clubLogo)}
-								alt={clubName}
-								className="w-10 h-10 rounded-full object-cover border border-border hover:opacity-90 transition"
-							/>
-						) : (
-							<div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
-								<Shield className="w-5 h-5" />
-							</div>
-						)}
-					</Link>
-
-					<div className="flex-1 min-w-0">
-						<div className="flex items-center gap-1.5 flex-wrap text-xs">
-							<Link
-								href={`/clubs/${clubId}`}
-								prefetch={false}
-								className="font-bold text-foreground hover:underline truncate"
-							>
-								{clubName}
+				{/* Header hiện skeleton cho đến khi clubInfo load xong */}
+				{clubInfo ? (
+					<>
+						<div className="flex items-center gap-3">
+							<Link href={`/clubs/${clubId}`} prefetch={false} className="shrink-0">
+								{clubLogo ? (
+									<img
+										src={getFullImageUrl(clubLogo)}
+										alt={clubName}
+										className="w-10 h-10 rounded-full object-cover border border-border hover:opacity-90 transition"
+									/>
+								) : (
+									<div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+										<Shield className="w-5 h-5" />
+									</div>
+								)}
 							</Link>
-							<span className="text-muted-foreground">•</span>
-							<span className="text-muted-foreground">
-								{formatTime(post.created_at)}
-							</span>
+
+							<div className="flex-1 min-w-0">
+								<div className="flex items-center gap-1.5 flex-wrap text-xs">
+									<Link
+										href={`/clubs/${clubId}`}
+										prefetch={false}
+										className="font-bold text-foreground hover:underline truncate"
+									>
+										{clubName}
+									</Link>
+									<span className="text-muted-foreground">•</span>
+									<span className="text-muted-foreground">
+										{formatTime(post.created_at)}
+									</span>
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
+					</>
+				) : (
+					<>
+						{/* Skeleton khi clubInfo chưa load xong */}
+						<div className="flex items-center gap-3 animate-pulse">
+							<div className="w-10 h-10 rounded-full bg-muted shrink-0" />
+							<div className="flex-1 min-w-0 space-y-1">
+								<div className="h-4 w-28 bg-muted rounded" />
+								<div className="h-3 w-16 bg-muted rounded" />
+							</div>
+						</div>
+					</>
+				)}
 
 				{/* Tiêu đề & Nội dung */}
 				<div className="space-y-2">

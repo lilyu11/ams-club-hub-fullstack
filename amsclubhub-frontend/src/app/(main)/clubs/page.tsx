@@ -41,6 +41,7 @@ function ClubCard({ club }: { club: Club }) {
 						src={imageUrl}
 						alt={club.name || 'Club'}
 						fill
+						priority
 						unoptimized
 						className="object-cover group-hover:scale-105 transition-transform duration-300"
 						onError={() => setImgError(true)}

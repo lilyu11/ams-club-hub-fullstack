@@ -6,6 +6,7 @@ interface ClubHeaderProps {
 	club: any;
 	isFollowing?: boolean;
 	canEditClub?: boolean;
+	isAdminRole?: boolean;
 	onToggleFollow?: () => void;
 	onOpenEditClubModal?: () => void;
 }
@@ -14,6 +15,7 @@ export default function ClubHeader({
 	club,
 	isFollowing = false,
 	canEditClub = false,
+	isAdminRole = false,
 	onToggleFollow,
 	onOpenEditClubModal,
 }: ClubHeaderProps) {
@@ -72,8 +74,8 @@ export default function ClubHeader({
 
 						{/* CÁC NÚT THAO TÁC */}
 						<div className="flex items-center gap-1.5 sm:gap-2 mb-1 shrink-0 max-w-full">
-							{/* Nút Remind Me / Follow */}
-							{(onToggleFollow && !canEditClub) && (
+							{/* Nút Remind Me / Follow — club_admin/super_admin không thấy */}
+							{onToggleFollow && !canEditClub && !isAdminRole && (
 								<button
 									onClick={onToggleFollow}
 									className={`flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-5 sm:py-2 text-xs sm:text-sm font-bold rounded-full transition-all active:scale-95 whitespace-nowrap shrink-0 ${isFollowing

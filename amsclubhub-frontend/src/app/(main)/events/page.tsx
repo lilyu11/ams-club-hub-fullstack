@@ -77,6 +77,7 @@ function EventCard({ event, timeBadge }: { event: PostData; timeBadge?: string }
             src={imageUrl}
             alt={event.title || 'Event'}
             fill
+            priority
             unoptimized
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             onError={() => setImgError(true)}

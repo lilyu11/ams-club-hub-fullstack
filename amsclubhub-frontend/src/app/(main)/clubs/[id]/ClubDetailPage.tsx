@@ -196,12 +196,16 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 
 	const userRole = currentUser?.role?.toLowerCase();
 	const isSuperAdmin = userRole === 'super_admin';
+	const isClubAdmin = userRole === 'club_admin';
 
 	const isCurrentClubAdmin =
-		userRole === 'club_admin' &&
+		isClubAdmin &&
 		Boolean(currentUser?.id && club?.admin_id && String(currentUser.id) === String(club.admin_id));
 
+	// Dùng để chỉnh sửa modal bài viết và profile
 	const canEditClub = isSuperAdmin || isCurrentClubAdmin;
+	// Dùng để chặn không cho follow câu lạc bộ
+	const isAdminRole = isSuperAdmin || isClubAdmin;
 
 	const handleToggleFollow = async () => {
 		if (typeof window === 'undefined') return;
@@ -396,6 +400,7 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 				club={club}
 				isFollowing={isFollowing}
 				canEditClub={canEditClub}
+				isAdminRole={isAdminRole}
 				onToggleFollow={handleToggleFollow}
 				onOpenEditClubModal={() => {
 					const dataToUse = rawClubData || club;

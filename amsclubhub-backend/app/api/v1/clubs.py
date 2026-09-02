@@ -223,7 +223,15 @@ def toggle_follow_club(
 	Follow hoặc unfollow một câu lạc bộ (toggle)
 	- Nếu chưa follow: Hệ thống sẽ tạo lượt theo dõi mới
 	- Nếu đã follow: Hệ thống sẽ hủy lượt theo dõi
+	- Club admin và super admin không được theo dõi CLB nào
 	"""
+	# Club admin và super admin không được theo dõi câu lạc bộ
+	if current_user.role in (UserRole.CLUB_ADMIN, UserRole.SUPER_ADMIN):
+		raise HTTPException(
+			status_code=status.HTTP_403_FORBIDDEN,
+			detail="Tài khoản admin không thể theo dõi câu lạc bộ"
+		)
+
 	# Tìm CLB theo ID hoặc code
 	club = get_club_by_identifier(club_id, db)
 
