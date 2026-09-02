@@ -13,6 +13,7 @@ import {
 	CheckCircle2,
 	Sparkles,
 	AlertCircle,
+	Loader2
 } from 'lucide-react';
 import api from '@/lib/api';
 import { getFullImageUrl } from '@/lib/utils';
@@ -37,10 +38,10 @@ interface PostDetail {
 }
 
 interface PostDetailClientProps {
-    postId: string;
+	postId: string;
 }
 
-export default function PostDetailPage({ postId }: PostDetailClientProps){
+export default function PostDetailPage({ postId }: PostDetailClientProps) {
 	const router = useRouter();
 
 	const [post, setPost] = useState<PostDetail | null>(null);
@@ -240,21 +241,25 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 
 	if (loading) {
 		return (
-			<div className="max-w-2xl mx-auto space-y-4 min-h-screen">
-				<div className="px-4 py-3 border-b border-border flex items-center gap-3">
-					<div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
-				</div>
-				<div className="p-4 space-y-3 animate-pulse">
-					<div className="flex items-center gap-3">
-						<div className="w-10 h-10 rounded-full bg-muted" />
-						<div className="space-y-1.5">
-							<div className="h-4 w-28 bg-muted rounded" />
-							<div className="h-3 w-16 bg-muted rounded" />
-						</div>
-					</div>
-					<div className="h-5 w-3/4 bg-muted rounded" />
-					<div className="w-full h-64 bg-muted rounded-2xl" />
-				</div>
+			// <div className="max-w-2xl mx-auto space-y-4 min-h-screen">
+			// 	<div className="px-4 py-3 border-b border-border flex items-center gap-3">
+			// 		<div className="w-9 h-9 rounded-full bg-muted animate-pulse" />
+			// 	</div>
+			// 	<div className="p-4 space-y-3 animate-pulse">
+			// 		<div className="flex items-center gap-3">
+			// 			<div className="w-10 h-10 rounded-full bg-muted" />
+			// 			<div className="space-y-1.5">
+			// 				<div className="h-4 w-28 bg-muted rounded" />
+			// 				<div className="h-3 w-16 bg-muted rounded" />
+			// 			</div>
+			// 		</div>
+			// 		<div className="h-5 w-3/4 bg-muted rounded" />
+			// 		<div className="w-full h-64 bg-muted rounded-2xl" />
+			// 	</div>
+			// </div>
+			<div className="flex h-[60vh] flex-col items-center justify-center gap-2 text-slate-500">
+				<Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+				<p className="text-sm font-medium">Đang tải thông tin bài viết...</p>
 			</div>
 		);
 	}
