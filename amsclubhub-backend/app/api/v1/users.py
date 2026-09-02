@@ -15,13 +15,19 @@ def read_current_user(
 	db: Session = Depends(get_db)
 ):
 	managed_club_id = None
-	
+
 	if current_user.role == UserRole.CLUB_ADMIN:
 		club = db.query(Club).filter(Club.admin_id == current_user.id).first()
 		if club:
 			managed_club_id = club.id
 
-	return {
-		**current_user.__dict__,
-		"club_id": managed_club_id  # Trả club_id về cho frontend
-	}
+	# Chỉ trả về các trường an toàn, KHÔNG leak hashed_password
+	return UserResponse(
+		id=current_user.id,
+		email=current_user.email,
+		full_name=current_user.full_name,
+		student_id=current_user.student_id,
+		role=current_user.role,
+		is_active=current_user.is_active,
+		club_id=managed_club_id
+	)

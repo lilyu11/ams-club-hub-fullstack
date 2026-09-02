@@ -300,16 +300,16 @@ def get_followed_clubs(
 	followed_clubs = [follow.club for follow in follows if follow.club.is_active and follow.club is not None]
 	return followed_clubs
 
-@router.get("/{club_id}/followers", response_model=List[UserResponse])
-def get_club_followers(
-	club_id: str,
-	db: Session = Depends(get_db)
-):
+# @router.get("/{club_id}/followers", response_model=List[UserResponse])
+# def get_club_followers(
+# 	club_id: str,
+# 	db: Session = Depends(get_db)
+# ):
 
-	# Lấy danh sách người dùng đang follow CLB
-	club = get_club_by_identifier(club_id, db)
-	followers = db.query(ClubFollower).filter(
-	ClubFollower.club_id == club.id
-	).all()
+# 	# Lấy danh sách người dùng đang follow CLB
+# 	club = get_club_by_identifier(club_id, db)
+# 	followers = db.query(ClubFollower).filter(
+# 	ClubFollower.club_id == club.id
+# 	).all()
 
-	return [follower.user for follower in followers]
+# 	return [follower.user for follower in followers]

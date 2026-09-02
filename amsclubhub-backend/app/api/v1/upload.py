@@ -1,6 +1,13 @@
 import io
 import os
 import uuid
+
+try:
+    import magic  # python-magic for MIME type detection
+    MAGIC_AVAILABLE = True
+except (ImportError, Exception):
+    magic = None
+    MAGIC_AVAILABLE = False
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Depends
 from PIL import Image, ImageOps
 from supabase import create_client, Client
@@ -12,6 +19,7 @@ router = APIRouter(prefix="/upload", tags=["Upload File"])
 
 # Cấu hình tối ưu ảnh
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
+ALLOWED_MIME_TYPES = {"image/jpeg", "image/png", "image/webp"}
 MAX_FILE_SIZE = 20 * 1024 * 1024  # Tối đa 20 MB
 MAX_DIMENSION = 1920              # Rộng/Cao tối đa 1920px (Full HD)
 UPLOAD_DIR = "uploads/images"
@@ -24,6 +32,41 @@ BUCKET_NAME = "uploads"  # Tên Bucket bạn tạo trên Supabase Storage
 supabase_client: Client = None
 if SUPABASE_URL and SUPABASE_KEY:
 	supabase_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+
+def validate_file_type(file: UploadFile, contents: bytes) -> tuple[bool, str]:
+    # Validate file type bằng cách check cả extension lẫn MIME type (magic bytes)
+    # Return (is_valid, error_message)
+
+    # Check extension
+    file_ext = os.path.splitext(file.filename)[1].lower()
+    if file_ext not in ALLOWED_EXTENSIONS:
+        return False, f"Định dạng file không hợp lệ. Chỉ chấp nhận: {', '.join(ALLOWED_EXTENSIONS)}"
+
+    # Check MIME type bằng python-magic (magic bytes)
+    try:
+        if MAGIC_AVAILABLE:
+            mime_type = magic.from_buffer(contents, mime=True)
+        else:
+            mime_type = file.content_type or ""
+    except Exception:
+        mime_type = file.content_type or ""
+
+    if mime_type not in ALLOWED_MIME_TYPES:
+        return False, f"Loại file không được phép. Chỉ chấp nhận ảnh JPEG, PNG, WebP."
+
+    # Kiểm tra xem extension có match MIME type không
+    ext_mime_map = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }
+    expected_mime = ext_mime_map.get(file_ext)
+    if expected_mime and mime_type != expected_mime:
+        return False, f"Đuôi file không khớp với nội dung thực tế."
+
+    return True, ""
 
 
 @router.post("/image")
@@ -40,14 +83,6 @@ async def upload_image(
 	- Nén & Convert sang định dạng WebP siêu nhẹ
 	- Upload trực tiếp lên Supabase Storage CDN (Fallback về Local nếu chưa config Supabase)
 	"""
-	# Kiểm tra định dạng đuôi file
-	file_ext = os.path.splitext(file.filename)[1].lower()
-	if file_ext not in ALLOWED_EXTENSIONS:
-		raise HTTPException(
-			status_code=status.HTTP_400_BAD_REQUEST,
-			detail=f"Định dạng file không hợp lệ. Chỉ chấp nhận: {', '.join(ALLOWED_EXTENSIONS)}"
-		)
-
 	# Đọc dữ liệu file & Kiểm tra dung lượng
 	contents = await file.read()
 	original_size_bytes = len(contents)
@@ -55,6 +90,14 @@ async def upload_image(
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="Dung lượng file vượt quá giới hạn 20MB."
+		)
+
+	# Validate file type (extension + MIME type + magic bytes)
+	is_valid, error_msg = validate_file_type(file, contents)
+	if not is_valid:
+		raise HTTPException(
+			status_code=status.HTTP_400_BAD_REQUEST,
+			detail=error_msg
 		)
 
 	try:

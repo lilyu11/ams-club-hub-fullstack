@@ -1,10 +1,11 @@
 import os
 from app.services.scheduler_service import start_scheduler, scheduler
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from app.core.database import engine, Base
+from app.core.redis import init_redis, close_redis
 from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
 from app.api.v1.clubs import router as clubs_router
@@ -17,11 +18,15 @@ Base.metadata.create_all(bind=engine) # Tự động tạo các bảng còn thi�
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+	# Khởi chạy Redis
+	await init_redis()
 	# Khởi chạy Scheduler khi app bật
 	start_scheduler()
 	yield
 	# Tắt Scheduler khi app dừng
 	scheduler.shutdown()
+	# Đóng Redis
+	await close_redis()
 
 app = FastAPI(
 	title="AmsClubHub API",
@@ -35,8 +40,33 @@ origins = [
 	"http://localhost:3000",    # React / Next.js mặc định
 	"http://localhost:5173",    # Vite (React / Vue) mặc định
 	"https://ams-club-hub.hadung29112009.workers.dev",  # Cloudflare Workers (production)
-	"*"							# Mở cho tất cả tên miền
 ]
+
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+	response = await call_next(request)
+	# Security headers
+	response.headers["X-Content-Type-Options"] = "nosniff"
+	response.headers["X-Frame-Options"] = "DENY"
+	response.headers["X-XSS-Protection"] = "1; mode=block"
+	response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+	# CSP - cho phép inline scripts/styles cho Swagger UI và frontend
+	response.headers["Content-Security-Policy"] = (
+		"default-src 'self'; "
+		"script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+		"style-src 'self' 'unsafe-inline'; "
+		"img-src 'self' data: https:; "
+		"font-src 'self' data:; "
+		"connect-src 'self' https:; "
+		"frame-ancestors 'none'; "
+		"base-uri 'self'; "
+		"form-action 'self'"
+	)
+	# HSTS (chỉ bật khi dùng HTTPS)
+	if request.url.scheme == "https":
+		response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+	return response
 
 # TÍCH HỢP CORS MIDDLEWARE VÀO FASTAPI
 app.add_middleware(

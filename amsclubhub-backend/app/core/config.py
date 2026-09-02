@@ -6,7 +6,7 @@ class Settings(BaseSettings):
 	PROJECT_NAME: str = "AmsClubHub Backend"
 	API_V1_STR: str = "/api/v1"
 	SECRET_KEY: str
-	ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 days
+	ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
 
 	# Database
 	DATABASE_URL: str
