@@ -25,6 +25,7 @@ export default function NotFound() {
 			<div className="pt-2">
 				<Link
 					href="/"
+					prefetch={false}
 					className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary hover:opacity-90 text-primary-foreground font-medium rounded-xl text-xs sm:text-sm transition shadow-sm active:scale-95"
 				>
 					<Home className="w-4 h-4" />

@@ -32,8 +32,8 @@ class CampaignPostUpdate(BaseModel):
 
 # Schema dữ liệu bài viết trả về cho client
 class CampaignPostResponse(CampaignPostBase):
+	model_config = ConfigDict(from_attributes=True)
+
 	id: str
 	club_id: str
-	created_at: datetime
-
-model_config = ConfigDict(from_attributes=True)
+	created_at: Optional[datetime] = None

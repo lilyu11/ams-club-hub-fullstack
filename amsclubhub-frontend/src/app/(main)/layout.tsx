@@ -28,7 +28,7 @@ export default function MainLayout({
     <div className="flex min-h-screen flex-col md:flex-row justify-center bg-background text-foreground">
       {/* Header dành riêng cho MOBILE */}
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/80 px-4 py-3 backdrop-blur-md md:hidden">
-        <Link href="/" className="flex items-center gap-2 text-primary font-black text-xl">
+        <Link href="/" prefetch={false} className="flex items-center gap-2 text-primary font-black text-xl">
           <Sparkles className="w-6 h-6 fill-primary" />
             <span>AmsClubHub</span>
         </Link>

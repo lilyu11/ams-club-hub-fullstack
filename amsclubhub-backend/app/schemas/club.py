@@ -40,6 +40,8 @@ class ClubUpdate(BaseModel):
 
 # Schema dữ liệu trả về cho client
 class ClubResponse(ClubBase):
+	model_config = ConfigDict(from_attributes=True)
+
 	id: str
 	is_active: bool
 	created_at: datetime
@@ -51,8 +53,8 @@ class ClubDeleteConfirm(BaseModel):
 
 # Schema trạng thái follow
 class ClubFollowResponse(BaseModel):
-	message: str
-	is_following: bool 
-	followers_count: int
+	model_config = ConfigDict(from_attributes=True)
 
-model_config = ConfigDict(from_attributes=True)
+	message: str
+	is_following: bool
+	followers_count: int

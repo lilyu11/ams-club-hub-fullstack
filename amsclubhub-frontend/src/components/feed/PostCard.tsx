@@ -192,6 +192,7 @@ export default function PostCard({
 			<div className="flex gap-3">
 				{/* Logo/Avatar CLB */}
 				<Link href={`/clubs/${post.club_id}`}
+					prefetch={false}
 					className="shrink-0"
 					onClick={(e) => e.stopPropagation()}>
 					{post.club_logo ? (
@@ -214,6 +215,7 @@ export default function PostCard({
 						<div className="flex items-center gap-1.5 flex-wrap text-xs">
 							<Link
 								href={`/clubs/${post.club_id}`}
+								prefetch={false}
 								className="font-bold text-foreground hover:underline truncate"
 								onClick={(e) => e.stopPropagation()}
 							>
@@ -275,6 +277,7 @@ export default function PostCard({
 
 					{/* Tiêu đề & Nội dung */}
 					<Link href={`/posts/${post.id}`}
+						prefetch={false}
 						className="block mt-1 space-y-1">
 						<h2 className="text-sm font-bold text-foreground leading-snug">{post.title}</h2>
 						{post.content && (

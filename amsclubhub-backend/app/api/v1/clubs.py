@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 from typing import List, Optional
+import logging
 
 from pydantic import BaseModel
 
@@ -16,6 +17,7 @@ from app.core.security import verify_password
 from app.schemas.auth import UserResponse
 
 router = APIRouter(prefix="/clubs", tags=["Clubs"])
+logger = logging.getLogger(__name__)
 
 # Hàm helper tìm CLB theo UUID (id) hoặc mã định danh (code)
 def get_club_by_identifier(club_id: str, db: Session) -> Club:
@@ -116,19 +118,28 @@ def get_club_detail(
     Giảm số round-trip từ 3-4 request xuống còn 1 request phía client.
     is_following chỉ tính khi có access_token hợp lệ.
     """
-    club = get_club_by_identifier(club_id, db)
+    try:
+        club = get_club_by_identifier(club_id, db)
 
-    posts = db.query(CampaignPost).filter(CampaignPost.club_id == club.id)\
-        .order_by(CampaignPost.created_at.desc()).offset(skip).limit(limit).all()
+        posts = db.query(CampaignPost).filter(CampaignPost.club_id == club.id)\
+            .order_by(CampaignPost.created_at.desc()).offset(skip).limit(limit).all()
 
-    is_following = False
-    if current_user:
-        is_following = db.query(ClubFollower).filter(
-            ClubFollower.user_id == current_user.id,
-            ClubFollower.club_id == club.id
-        ).first() is not None
+        is_following = False
+        if current_user:
+            is_following = db.query(ClubFollower).filter(
+                ClubFollower.user_id == current_user.id,
+                ClubFollower.club_id == club.id
+            ).first() is not None
 
-    return ClubDetailResponse(club=club, posts=posts, is_following=is_following)
+        return ClubDetailResponse(club=club, posts=posts, is_following=is_following)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Lỗi khi xử lý /clubs/%s/detail", club_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Không thể tải chi tiết câu lạc bộ. Vui lòng thử lại sau.",
+        ) from exc
 
 
 @router.put("/{club_id}", response_model=ClubResponse, status_code=status.HTTP_200_OK)

@@ -23,6 +23,7 @@ export default function ClubHeader({
 			<div className="flex items-center gap-4 py-1 px-1">
 				<Link
 					href="/"
+					prefetch={false}
 					className="p-2 rounded-full bg-white dark:bg-neutral-900/80 text-zinc-800 dark:text-white hover:bg-zinc-100 dark:hover:bg-neutral-800 transition-all border border-zinc-200 dark:border-neutral-800 shadow-sm"
 					title="Quay về trang chủ"
 				>

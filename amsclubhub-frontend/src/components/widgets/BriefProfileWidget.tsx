@@ -105,6 +105,7 @@ export default function BriefProfileWidget() {
 				</div>
 				<Link
 					href="/login"
+					prefetch={false}
 					className="flex items-center justify-center gap-2 w-full text-xs bg-primary text-primary-foreground font-semibold px-3 py-2 rounded-xl hover:opacity-90 transition shadow-sm"
 				>
 					<LogIn className="w-3.5 h-3.5" />

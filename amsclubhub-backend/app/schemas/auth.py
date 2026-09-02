@@ -26,6 +26,8 @@ class Token(BaseModel):
 
 # Schema trả về thông tin user gọn nhẹ
 class UserResponse(BaseModel):
+	model_config = ConfigDict(from_attributes=True)
+
 	id: str
 	email: EmailStr
 	full_name: str
@@ -33,5 +35,3 @@ class UserResponse(BaseModel):
 	role: UserRole
 	is_active: bool
 	club_id: Optional[str] = None
-
-model_config = ConfigDict(from_attributes=True)

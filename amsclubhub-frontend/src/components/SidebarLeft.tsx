@@ -80,6 +80,7 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 				{!isMobile && (
 					<Link
 						href="/"
+						prefetch={false}
 						className="flex items-center justify-center lg:justify-start gap-3 px-2 lg:px-3 text-primary font-black text-2xl tracking-tight hover:opacity-90 transition"
 					>
 						<Sparkles className="w-7 h-7 shrink-0 fill-primary" />
@@ -110,6 +111,7 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 							<Link
 								key={item.href}
 								href={item.href}
+								prefetch={false}
 								className={`flex items-center gap-4 px-3 py-3 rounded-full text-base font-medium transition-colors ${isMobile ? 'justify-start' : 'justify-center lg:justify-start'
 									} ${isActive
 										? 'font-bold text-foreground bg-muted/60'

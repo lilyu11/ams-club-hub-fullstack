@@ -53,11 +53,14 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 	const [isLoadingReminder, setIsLoadingReminder] = useState<boolean>(false);
 
 	useEffect(() => {
+		const controller = new AbortController();
+		const { signal } = controller;
+
 		const fetchPostDetail = async () => {
 			setLoading(true);
 			try {
 				// 1. Tải thông tin bài viết
-				const response = await api.get(`/posts/${postId}`);
+				const response = await api.get(`/posts/${postId}`, { signal });
 				const postData: PostDetail = response.data?.data || response.data;
 				setPost(postData);
 
@@ -65,9 +68,16 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 
 				// 2. Nếu có club_id, tự động lấy thông tin CLB & Trạng thái Follow của User
 				if (clubId) {
-					const [clubRes, followedRes] = await Promise.allSettled([
-						api.get(`/clubs/${clubId}`),
-						api.get('/clubs/followed/me'),
+					const hasToken =
+						typeof window !== 'undefined' &&
+						!!(localStorage.getItem('access_token') || localStorage.getItem('token'));
+
+					const [clubRes, followRes] = await Promise.allSettled([
+						api.get(`/clubs/${clubId}`, { signal }),
+						// Chỉ gọi endpoint trạng thái follow khi có token (endpoint này yêu cầu đăng nhập)
+						hasToken
+							? api.get(`/clubs/${clubId}/is-following`, { signal })
+							: Promise.resolve(null),
 					]);
 
 					// Tải Tên & Logo CLB đầy đủ
@@ -79,22 +89,17 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 						});
 					}
 
-					// Tải chính xác trạng thái đã Bật nhắc nhở / Follow chưa
-					if (followedRes.status === 'fulfilled') {
-						const followedList = Array.isArray(followedRes.value.data)
-							? followedRes.value.data
-							: followedRes.value.data?.items || followedRes.value.data?.data || [];
-
-						const isFollowed = followedList.some(
-							(c: any) => String(c.id || c.club_id) === String(clubId)
-						);
-						setIsFollowing(isFollowed);
+					// Tải trạng thái theo dõi CLB này (thay vì kéo cả danh sách /clubs/followed/me)
+					if (followRes.status === 'fulfilled' && followRes.value) {
+						setIsFollowing(!!followRes.value.data?.is_following);
 					} else if (postData.is_following !== undefined) {
 						setIsFollowing(!!postData.is_following);
 					}
 				}
 			} catch (error) {
-				console.error('Lỗi khi tải chi tiết bài viết:', error);
+				if ((error as any)?.code !== 'ERR_CANCELED') {
+					console.error('Lỗi khi tải chi tiết bài viết:', error);
+				}
 				setPost(null);
 			} finally {
 				setLoading(false);
@@ -104,6 +109,9 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 		if (postId) {
 			fetchPostDetail();
 		}
+
+		// Hủy các request khi người dùng rời trang nhanh
+		return () => controller.abort();
 	}, [postId]);
 
 	const showToast = (message: string, type: 'success' | 'error' = 'success') => {
@@ -296,7 +304,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 			<article className="p-4 sm:p-6 space-y-4">
 				{/* Header CLB */}
 				<div className="flex items-center gap-3">
-					<Link href={`/clubs/${clubId}`} className="shrink-0">
+					<Link href={`/clubs/${clubId}`} prefetch={false} className="shrink-0">
 						{clubLogo ? (
 							<img
 								src={getFullImageUrl(clubLogo)}
@@ -314,6 +322,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps){
 						<div className="flex items-center gap-1.5 flex-wrap text-xs">
 							<Link
 								href={`/clubs/${clubId}`}
+								prefetch={false}
 								className="font-bold text-foreground hover:underline truncate"
 							>
 								{clubName}

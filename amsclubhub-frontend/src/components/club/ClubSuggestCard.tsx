@@ -37,7 +37,7 @@ export default function ClubSuggestCard({ club }: { club: any }) {
 					{club?.category || 'Chưa phân loại'}
 				</p>
 
-				<Link href={`/clubs/${club?.id}`} className="block mt-3">
+				<Link href={`/clubs/${club?.id}`} prefetch={false} className="block mt-3">
 					<button className="w-full py-2 text-xs font-semibold rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all">
 						Xem trang CLB
 					</button>
