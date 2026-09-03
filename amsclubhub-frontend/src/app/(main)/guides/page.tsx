@@ -144,16 +144,17 @@ const GUIDE_TOPICS: GuideTopic[] = [
 	{
 		id: 'terms_of_service_and_privacy_policy',
 		title: 'Điều khoản & Bảo mật',
-		description: 'Điều khoản dịch vụ, chính sách bảo mật',
+		description: 'Điều khoản dịch vụ, Quyền riêng tư',
 		icon: KeyRound,
 		sections: [
 			{
 				title: 'Điều khoản dịch vụ',
-				description: 'Chưa cập nhật',
+				description: <Link href="/terms">Bấm vào đây để xem <strong>điều khoản dịch vụ</strong></Link>
+				,
 			},
 			{
-				title: 'Chính sách bảo mật',
-				description: 'Chưa cập nhật',
+				title: 'Quyền riêng tư',
+				description: <Link href="/privacy">Bấm vào đây để xem <strong>quyền riêng tư</strong></Link>
 			},
 		],
 	},
@@ -164,19 +165,12 @@ const GUIDE_TOPICS: GuideTopic[] = [
 		icon: PhoneCall,
 		sections: [
 			{
-				title: 'Liên hệ',
-				description: 'Thông tin liên hệ tới admin (tạm thời)',
-				details: [
-					'Email: amsclubhub@gmail.com',
-					'Số điện thoại: 0973848793',
-				],
+				title: 'Thông tin liên hệ',
+				description: <Link href="/project-info">Bấm vào đây để xem <strong>thông tin liên hệ</strong></Link>,
 			},
 			{
 				title: 'Feedback',
-				description: 'Gửi feedback về trải nghiệm sử dụng, gợi ý sửa đổi',
-				details: [
-					<Link href="https://forms.gle/TR5ihBU7ZT7j4oVH9" key="feedback-link">Bấm vào đây để tới trang feedback</Link>
-				],
+				description: <Link href="https://forms.gle/TR5ihBU7ZT7j4oVH9">Bấm vào đây để tới trang <strong>feedback</strong></Link>,
 			},
 		],
 	},

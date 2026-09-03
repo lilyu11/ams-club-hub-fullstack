@@ -42,7 +42,7 @@ export default function TermsPage() {
 				<div className="space-y-2">
 					<p>Nhằm xây dựng môi trường học đường văn minh, lành mạnh, người dùng cam kết:</p>
 					<ul className="list-disc pl-5 space-y-1">
-						<li>Nội dung bài đăng do Ban quản trịCLB đăng tải phải đảm bảo tính trung thực và văn hóa ứng xử.</li>
+						<li>Nội dung bài đăng do Ban quản trị CLB đăng tải phải đảm bảo tính trung thực và văn hóa ứng xử.</li>
 						<li>Tuyệt đối không đăng tải thông tin sai sự thật, lăng mạ, quấy rối hoặc bôi nhọ danh dự bất kì cá nhân/CLB nào.</li>
 						<li>Cấm các nội dung đồi trụy, bạo lực, ngôn từ thù hận, chính trị hoặc quảng cáo thương mại ngoài CLB.</li>
 						<li>Nghiêm cấm giả mạo Ban Quản trị, giả mạo CLB khác hoặc dùng công cụ tự động (bot) can thiệp hệ thống.</li>
@@ -66,10 +66,11 @@ export default function TermsPage() {
 			title: '5. Miễn trừ trách nhiệm (Disclaimer)',
 			content: (
 				<p>
-					Ams Club Hub là nền tảng kết nối trung gian. Thông tin được cung cấp do chính các CLB tự đăng tải và chịu trách
-					nhiệm. Chúng tôi không chịu trách nhiệm đối với việc sự kiện hay lịch trình bị thay đổi lịch trình hoặc hủy bỏ từ phía CLB.
-					Ngoài ra, hệ thống không chịu trách nhiệm đối với các gián đoạn dịch vụ ngoài tầm kiểm soát do sự cố hạ tầng
-					mạng.
+					Ams Club Hub là nền tảng kết nối trung gian. Nội dung và thông tin hiển thị trên nền tảng là được cung cấp bởi chính các CLB 
+					tự đăng tải và chịu trách nhiệm. Chúng tôi không chịu trách nhiệm đối với việc sự kiện hay lịch trình bị thay đổi lịch trình 
+					hoặc hủy bỏ từ phía CLB. Ngoài ra, hệ thống không chịu trách nhiệm đối với các gián đoạn dịch vụ ngoài tầm kiểm soát do sự cố hạ tầng
+					mạng. Ams Club Hub cũng không chịu trách nhiệm cho bất kì những ảnh hưởng liên quan đến thể chất hoặc tinh thần được gây ra
+					trực tiếp hay gián tiếp trong quá trình bạn sử dụng nền tảng.
 				</p>
 			),
 		},
