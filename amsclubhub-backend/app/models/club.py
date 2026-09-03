@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean, Integer
+from sqlalchemy import Column, String, Text, DateTime, ForeignKey, Boolean, Integer, func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from datetime import timezone
@@ -11,7 +11,7 @@ class ClubFollower(Base):
 
 	user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
 	club_id = Column(String(36), ForeignKey("clubs.id", ondelete="CASCADE"), primary_key=True)
-	created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+	created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
 	# Relationships
 	user = relationship("User", back_populates="followed_clubs")
@@ -31,7 +31,7 @@ class Club(Base):
 	banner_url = Column(String(500), nullable=True)
 	facebook_url = Column(String(500), nullable=True)
 	is_active = Column(Boolean, default=True, nullable=False)
-	created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+	created_at = Column(DateTime, server_default=func.now(), nullable=False)
 	signature = Column(String(50), nullable=True) # Đặc trưng câu lạc bộ
 	display_order = Column(Integer, default=0, nullable=False)
 	follower_count = Column(String(10), nullable=True)

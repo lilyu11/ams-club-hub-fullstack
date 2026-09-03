@@ -1,6 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 # Schema cơ sở cho Club
@@ -46,6 +46,13 @@ class ClubResponse(ClubBase):
 	is_active: bool
 	created_at: datetime
 	admin_id: str
+
+	@field_serializer("created_at")
+	@staticmethod
+	def serialize_datetime(v: datetime) -> str:
+		if v.tzinfo is None:
+			v = v.replace(tzinfo=timezone.utc)
+		return v.isoformat().replace("+00:00", "Z")
 
 # Schema confirm vô hiệu hóa CLB
 class ClubDeleteConfirm(BaseModel):

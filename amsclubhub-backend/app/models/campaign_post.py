@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import Enum
-from sqlalchemy import Column, String, Text, DateTime, Boolean, Integer, ForeignKey, Index, Enum as SQLEnum
+from sqlalchemy import Column, String, Text, DateTime, Boolean, Integer, ForeignKey, Index, Enum as SQLEnum, func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 from datetime import timezone
@@ -32,7 +32,7 @@ class CampaignPost(Base):
 	
 	is_active = Column(Boolean, default=True, nullable=False)
 	click_count = Column(Integer, default=0, nullable=False)
-	created_at = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+	created_at = Column(DateTime, server_default=func.now(), nullable=False)
 
 	# Relationships
 	club = relationship("Club", back_populates="campaign_posts")
