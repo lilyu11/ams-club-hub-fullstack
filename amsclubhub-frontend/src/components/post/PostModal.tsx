@@ -139,7 +139,7 @@ export default function PostModal({
 
 							<div className="space-y-2">
 								<label className="text-xs font-medium text-zinc-400">
-									Hạn chót / Deadline đăng ký
+									Hạn chót / Ngày thông báo
 								</label>
 								<Input
 									type="datetime-local"

@@ -17,6 +17,7 @@ import {
 import Link from 'next/link';
 import api from '@/lib/api';
 import { getFullImageUrl } from '@/lib/utils';
+import { formatTime } from '@/utils/timeUtils';
 
 interface PostCardProps {
 	post: PostData;
@@ -150,40 +151,6 @@ export default function PostCard({
 		} catch {
 			// Nếu trình duyệt chặn quyền clipboard
 			prompt('Sao chép liên kết bên dưới:', postUrl);
-		}
-	};
-
-	const formatTime = (dateStr?: string) => {
-		if (!dateStr) return 'Mới đây';
-
-		try {
-			// Chuẩn hóa chuỗi thời gian (thay khoảng trắng bằng 'T')
-			let formattedStr = dateStr.replace(' ', 'T');
-
-			// Nếu thiếu 'Z' hoặc múi giờ, ép về UTC bằng cách thêm 'Z'
-			if (!formattedStr.endsWith('Z') && !formattedStr.includes('+')) {
-				formattedStr += 'Z';
-			}
-
-			const pastTime = new Date(formattedStr).getTime();
-			const now = Date.now();
-			const diffInSeconds = Math.floor((now - pastTime) / 1000);
-
-			// Dưới 1 phút
-			if (diffInSeconds < 60) return 'Vừa xong';
-
-			// Hiển thị theo phút
-			const minutes = Math.floor(diffInSeconds / 60);
-			if (minutes < 60) return `${minutes} phút trước`;
-
-			// Hiển thị theo giờ
-			const hours = Math.floor(minutes / 60);
-			if (hours < 24) return `${hours} giờ trước`;
-
-			// Trên 24 tiếng -> Trả về ngày tháng (theo đúng múi giờ VN)
-			return new Date(formattedStr).toLocaleDateString('vi-VN');
-		} catch {
-			return 'Mới đây';
 		}
 	};
 

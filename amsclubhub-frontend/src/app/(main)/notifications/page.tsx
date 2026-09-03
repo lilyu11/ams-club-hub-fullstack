@@ -17,6 +17,7 @@ import {
 	AlertTriangle,
 } from 'lucide-react';
 import api from '@/lib/api';
+import { formatTime } from '@/utils/timeUtils';
 
 export interface NotificationDisplayItem {
 	id: string;
@@ -63,29 +64,6 @@ export default function NotificationsPage() {
 		};
 		checkAuth();
 	}, []);
-
-	// Hàm chuyển đổi định dạng thời gian
-	const formatTime = (dateStr?: string) => {
-		if (!dateStr) return 'Mới đây';
-		try {
-			let formattedStr = dateStr.replace(' ', 'T');
-			if (!formattedStr.endsWith('Z') && !formattedStr.includes('+')) {
-				formattedStr += 'Z';
-			}
-			const pastTime = new Date(formattedStr).getTime();
-			const now = Date.now();
-			const diffInSeconds = Math.floor((now - pastTime) / 1000);
-
-			if (diffInSeconds < 60) return 'Vừa xong';
-			const minutes = Math.floor(diffInSeconds / 60);
-			if (minutes < 60) return `${minutes} phút trước`;
-			const hours = Math.floor(minutes / 60);
-			if (hours < 24) return `${hours} giờ trước`;
-			return new Date(formattedStr).toLocaleDateString('vi-VN');
-		} catch {
-			return 'Mới đây';
-		}
-	};
 
 	const isNew = (dateString: string) => {
 		const diffInMs = new Date().getTime() - new Date(dateString).getTime();
