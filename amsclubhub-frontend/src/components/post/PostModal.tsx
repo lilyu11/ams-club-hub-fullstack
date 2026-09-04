@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2, FileText, Calendar } from 'lucide-react';
 import ImageUpload from '@/components/ui/ImageUpload';
+import DateTimePicker from '@/components/ui/DateTimePicker';
 
 interface PostModalProps {
 	isOpen: boolean;
@@ -23,6 +24,8 @@ interface PostModalProps {
 	setPostImageUrl: (val: string) => void;
 	postDeadline: string;
 	setPostDeadline: (val: string) => void;
+	postEmailMessage: string;
+	setPostEmailMessage: (val: string) => void;
 	postType: 'POST' | 'EVENT';
 	setPostType: (val: 'POST' | 'EVENT') => void;
 	eventDuration: string;
@@ -46,6 +49,8 @@ export default function PostModal({
 	setPostImageUrl,
 	postDeadline,
 	setPostDeadline,
+	postEmailMessage,
+	setPostEmailMessage,
 	postType,
 	setPostType,
 	eventDuration,
@@ -55,7 +60,7 @@ export default function PostModal({
 }: PostModalProps) {
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
-			<DialogContent className="bg-background dark:bg-zinc-900 text-foreground dark:text-zinc-100 border-border dark:border-zinc-800 max-w-lg">
+			<DialogContent className="bg-background dark:bg-zinc-900 max-h-[85vh] overflow-y-auto overflow-x-hidden pr-4 text-foreground dark:text-zinc-100 border-border dark:border-zinc-800 sm:max-w-2xl">
 				<DialogHeader>
 					<DialogTitle>
 						{editingPost
@@ -66,33 +71,31 @@ export default function PostModal({
 
 				{/* CHỌN BÀI ĐĂNG HOẶC SỰ KIỆN */}
 				{!editingPost && (
-					<div className="grid grid-cols-2 gap-3 p-1 bg-muted rounded-xl">
+					<div className="inline-flex items-center gap-1 p-1 bg-muted rounded-xl w-fit justify-self-start">
 						<button
 							type="button"
 							onClick={() => setPostType('POST')}
-							className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${
-								postType === 'POST'
-									? 'bg-background text-foreground shadow-sm'
-									: 'text-muted-foreground hover:text-foreground'
-							}`}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${postType === 'POST'
+								? 'bg-background text-foreground shadow-sm'
+								: 'text-muted-foreground hover:text-foreground'
+								}`}
 						>
 							<FileText className="w-4 h-4" /> Bài đăng
 						</button>
 						<button
 							type="button"
 							onClick={() => setPostType('EVENT')}
-							className={`flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${
-								postType === 'EVENT'
-									? 'bg-primary text-primary-foreground shadow-sm'
-									: 'text-muted-foreground hover:text-foreground'
-							}`}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${postType === 'EVENT'
+								? 'bg-primary text-primary-foreground shadow-sm'
+								: 'text-muted-foreground hover:text-foreground'
+								}`}
 						>
 							<Calendar className="w-4 h-4" /> Sự kiện
 						</button>
 					</div>
 				)}
 
-				<form onSubmit={onSubmit} className="space-y-4 mt-2">
+				<form onSubmit={onSubmit} className="space-y-4 mt-2 pr-2">
 					{/* Tiêu đề */}
 					<div className="space-y-2">
 						<label className="text-xs font-medium text-zinc-400">
@@ -107,6 +110,7 @@ export default function PostModal({
 							value={postTitle}
 							onChange={(e) => setPostTitle(e.target.value)}
 							required
+							className="break-words"
 						/>
 					</div>
 
@@ -121,6 +125,7 @@ export default function PostModal({
 								value={eventDuration}
 								onChange={(e) => setEventDuration(e.target.value)}
 								required
+								className="break-words"
 							/>
 						</div>
 					) : (
@@ -128,12 +133,13 @@ export default function PostModal({
 						<>
 							<div className="space-y-2">
 								<label className="text-xs font-medium text-zinc-400">
-									Link Google Form / Link đăng ký (Tùy chọn)
+									Link bài viết gốc / Link đăng ký (Tùy chọn)
 								</label>
 								<Input
 									placeholder="Ví dụ: https://forms.gle/..."
 									value={postFormUrl}
 									onChange={(e) => setPostFormUrl(e.target.value)}
+									className="break-words"
 								/>
 							</div>
 
@@ -141,13 +147,26 @@ export default function PostModal({
 								<label className="text-xs font-medium text-zinc-400">
 									Hạn chót / Ngày thông báo
 								</label>
-								<Input
-									type="datetime-local"
+								<DateTimePicker
 									value={postDeadline}
-									onChange={(e) => setPostDeadline(e.target.value)}
-									onKeyDown={(e) => e.preventDefault()}
-									onClick={(e) => e.currentTarget.showPicker?.()}
-									className="cursor-pointer select-none"
+									onChange={setPostDeadline}
+									placeholder="Chọn thời gian thông báo (MM/DD/YYYY)"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<label className="text-xs font-medium text-zinc-400">
+									Lời nhắc nhở trong email
+									</label>
+								<Textarea
+									placeholder={
+										'Nhập lời nhắn gửi tới trong email thông báo...'
+									}
+									rows={4}
+									value={postEmailMessage}
+									onChange={(e) => setPostEmailMessage(e.target.value)}
+									className="resize-none h-16 overflow-y-auto break-words w-full"
+									style={{ fieldSizing: 'fixed' }}
 								/>
 							</div>
 						</>
@@ -166,7 +185,8 @@ export default function PostModal({
 							value={postContent}
 							onChange={(e) => setPostContent(e.target.value)}
 							required
-							className="resize-none h-32 overflow-y-auto"
+							className="resize-none h-32 overflow-y-auto break-words w-full"
+							style={{ fieldSizing: 'fixed' }}
 						/>
 					</div>
 

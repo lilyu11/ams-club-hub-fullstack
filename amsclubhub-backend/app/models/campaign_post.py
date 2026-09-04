@@ -29,6 +29,7 @@ class CampaignPost(Base):
 	image_url = Column(String(500), nullable=True)         # Ảnh poster / banner bài viết
 	action_url = Column(String(500), nullable=True)        # Link form đăng ký / mua hàng
 	deadline = Column(DateTime, nullable=True)             # Hạn chót đóng đơn
+	email_message = Column(String(500), nullable=True)     # Lời nhắn gửi trong email
 	
 	is_active = Column(Boolean, default=True, nullable=False)
 	click_count = Column(Integer, default=0, nullable=False)

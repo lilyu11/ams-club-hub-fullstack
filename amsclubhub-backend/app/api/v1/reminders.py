@@ -64,11 +64,8 @@ def create_reminder(
 			detail="Bạn đã đặt nhắc nhở cho bài viết này rồi."
 		)
 
-	# Tính thời điểm gửi mail (Mặc định trước deadline 24 tiếng)
-	scheduled_time = post_deadline - timedelta(hours=24)
-	# Nếu thời điểm (Deadline - 24h) đã qua (do còn dưới 24h nữa là hết hạn), đặt luôn giờ gửi là ngay bây giờ
-	if scheduled_time < now_utc:
-		scheduled_time = now_utc
+	# Tính thời điểm gửi mail (Mặc định là deadline trong post)
+	scheduled_time = post_deadline
 
 	new_reminder = Reminder(
 		user_id=current_user.id,

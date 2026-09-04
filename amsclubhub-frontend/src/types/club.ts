@@ -31,6 +31,7 @@ export interface PostData {
   created_at: string;
   action_url?: string | null;
   deadline?:string;
+  email_message?:string;
   image_url?: string | null;
   is_following?: boolean;
   type?: 'POST' | 'EVENT' | string;

@@ -57,6 +57,7 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 	const [submitting, setSubmitting] = useState(false);
 	const [editingPost, setEditingPost] = useState<PostData | null>(null);
 	const [postDeadline, setPostDeadline] = useState('');
+	const [postEmailMessage, setPostEmailMessage] = useState('');
 	const [postType, setPostType] = useState<'POST' | 'EVENT'>('POST');
 	const [eventDuration, setEventDuration] = useState('');
 
@@ -314,6 +315,7 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 		} else {
 			setEventDuration('');
 			setPostContent(post.content || '');
+			setPostEmailMessage(post.email_message || '');
 		}
 
 		setIsPostDialogOpen(true);
@@ -356,6 +358,7 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 			setPostFormUrl('');
 			setPostImageUrl('');
 			setPostDeadline('');
+			setPostEmailMessage('');
 			setPostType('POST');
 			setEventDuration('');
 			setEditingPost(null);
@@ -450,6 +453,7 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 									setPostFormUrl('');
 									setPostImageUrl('');
 									setPostDeadline('');
+									setPostEmailMessage('');
 									setPostType(activeTab);
 									setEventDuration('');
 									setIsPostDialogOpen(true);
@@ -520,6 +524,8 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 				setPostImageUrl={setPostImageUrl}
 				postDeadline={postDeadline}
 				setPostDeadline={setPostDeadline}
+				postEmailMessage={postEmailMessage}
+				setPostEmailMessage={setPostEmailMessage}
 				postType={postType}
 				setPostType={setPostType}
 				eventDuration={eventDuration}

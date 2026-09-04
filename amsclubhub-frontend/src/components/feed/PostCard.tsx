@@ -1,6 +1,6 @@
 'use client';
 
-import { PostData } from '@/types/club';
+import { PostData, UserProfile } from '@/types/club';
 import { useState, useEffect, useRef } from 'react';
 import {
 	Bell,
@@ -41,6 +41,7 @@ export default function PostCard({
 	const [isMenuOpen, setIsMenuOpen] = useState(false);
 	const [isReminded, setIsReminded] = useState<boolean>(false);
 	const [isLoadingReminder, setIsLoadingReminder] = useState<boolean>(false);
+	const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
 
 	const menuRef = useRef<HTMLDivElement>(null);
 
@@ -102,6 +103,16 @@ export default function PostCard({
 		const token = localStorage.getItem('access_token');
 		if (!token) {
 			showToast('Vui lòng đăng nhập để bật thông báo', 'error');
+			return;
+		}
+		
+		// Admin không được bật thông báo
+		const userRes = await api.get('/users/me');
+		if (userRes) {
+			setCurrentUser(userRes.data);
+		}
+		if (currentUser?.role.toLowerCase() == 'club_admin' || 'super_admin') {
+			showToast('Quản trị viên không thể bật nhắc nhở', 'error');
 			return;
 		}
 

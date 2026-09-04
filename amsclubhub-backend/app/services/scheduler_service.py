@@ -33,7 +33,7 @@ def check_and_send_pending_reminders():
 
 			if user and post:
 				deadline_format = post.deadline.strftime("%H:%M - %d/%m/%Y") if post.deadline else "Đang cập nhật"
-				club_name = club.name if club else "CLB"
+				club_name = club.name if club else "AmsClubHub"
 
 				# Khai báo Coroutine (Chưa cho chạy ngay)
 				coro = send_reminder_email(
@@ -41,7 +41,7 @@ def check_and_send_pending_reminders():
 					user_name=user.full_name,
 					post_title=post.title,
 					club_name=club_name,
-					deadline_str=deadline_format,
+					email_message=post.email_message,
 					action_url=post.action_url or post.fb_post_url
 				)
 				tasks.append(coro)

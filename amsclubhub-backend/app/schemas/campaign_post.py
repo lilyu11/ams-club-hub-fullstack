@@ -13,6 +13,7 @@ class CampaignPostBase(BaseModel):
 	image_url: Optional[str] = None
 	action_url: Optional[str] = None
 	deadline: Optional[datetime] = None
+	email_message: Optional[str] = None
 
 
 # Schema nhận dữ liệu khi tạo bài viết
@@ -28,6 +29,7 @@ class CampaignPostUpdate(BaseModel):
 	image_url: Optional[str] = None
 	action_url: Optional[str] = None
 	deadline: Optional[str] = None
+	email_message: Optional[str] = None
 
 
 # Schema dữ liệu bài viết trả về cho client

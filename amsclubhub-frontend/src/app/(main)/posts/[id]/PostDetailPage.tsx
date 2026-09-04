@@ -18,6 +18,7 @@ import {
 import api from '@/lib/api';
 import { getFullImageUrl } from '@/lib/utils';
 import { formatTime } from '@/utils/timeUtils';
+import { UserProfile } from '@/types/club';
 
 interface PostDetail {
 	id: number | string;
@@ -26,7 +27,7 @@ interface PostDetail {
 	image_url?: string;
 	created_at?: string;
 	action_url?: string;
-	deadline?: string;
+	deadline?: string | number | Date;
 	club_id?: number | string;
 	is_following?: boolean;
 	club_name?: string;
@@ -53,6 +54,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 	const [toastMessage, setToastMessage] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
 	const [isReminded, setIsReminded] = useState<boolean>(false);
 	const [isLoadingReminder, setIsLoadingReminder] = useState<boolean>(false);
+	const [currentUser, setCurrentUser] = useState<UserProfile | null>(null)
 
 	useEffect(() => {
 		const controller = new AbortController();
@@ -61,14 +63,14 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 		const fetchPostDetail = async () => {
 			setLoading(true);
 			try {
-				// 1. Tải thông tin bài viết
+				// Tải thông tin bài viết
 				const response = await api.get(`/posts/${postId}`, { signal });
 				const postData: PostDetail = response.data?.data || response.data;
 				setPost(postData);
 
 				const clubId = postData.club_id || postData.club?.id;
 
-				// 2. Nếu có club_id, tự động lấy thông tin CLB & Trạng thái Follow của User
+				// Nếu có club_id, tự động lấy thông tin CLB & Trạng thái follow của user
 				if (clubId) {
 					const hasToken =
 						typeof window !== 'undefined' &&
@@ -161,17 +163,24 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 			return;
 		}
 
-		if (!post?.deadline) {
-			showToast('Bài viết không có deadline để nhắc nhở', 'error');
+		// Admin không được bật thông báo
+		const userRes = await api.get('/users/me');
+		if (userRes) {
+			setCurrentUser(userRes.data);
+		}
+		if (currentUser?.role.toLowerCase() == 'club_admin' || 'super_admin') {
+			showToast('Quản trị viên không thể bật nhắc nhở', 'error');
 			return;
 		}
 
 		// Kiểm tra deadline có hợp lệ và đã trôi qua so với hiện tại chưa
-		const deadlineDate = new Date(post?.deadline);
-		const now = new Date();
-		if (isNaN(deadlineDate.getTime()) || deadlineDate < now) {
-			showToast('Đã quá hạn deadline, không thể bật nhắc nhở!', 'error');
-			return;
+		if (post?.deadline) {
+			const deadlineDate = new Date(post?.deadline);
+			const now = new Date();
+			if (isNaN(deadlineDate.getTime()) || deadlineDate < now) {
+				showToast('Đã quá hạn deadline, không thể bật nhắc nhở!', 'error');
+				return;
+			}
 		}
 
 		// Nếu đang loading hoặc đã bật thông báo rồi thì dừng (khóa 1 chiều)

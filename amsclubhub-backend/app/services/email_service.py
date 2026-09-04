@@ -94,7 +94,7 @@ async def send_html_email(to_email: str, subject: str, html_content: str, idempo
 		return False
 
 
-async def send_reminder_email(to_email: str, user_name: str, post_title: str, club_name: str, deadline_str: str, action_url: str) -> bool:
+async def send_reminder_email(to_email: str, user_name: str, post_title: str, club_name: str, email_message: str, action_url: str) -> bool:
 	# Gửi email nhắc nhở qua Brevo (HTTPS) hoặc SMTP fallback
 	subject = f"⏰ [AmsClubHub] NHẮC NHỞ: SẮP HẾT HẠN ĐIỀN ĐƠN/ĐĂNG KÝ {post_title}!"
 	idempotency_key = make_idempotency_key(to_email, subject)
@@ -103,19 +103,19 @@ async def send_reminder_email(to_email: str, user_name: str, post_title: str, cl
 	<html>
 		<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
 		<div style="max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px;">
-			<h2 style="color: #e53935;">Còn 12 tiếng trước khi hết hạn ĐIỀN ĐƠN/ĐĂNG KÝ!</h2>
+			<h2 style="color: #e53935;">Bạn đã nhận được thông báo từ {club_name}!</h2>
 			<p>Xin chào <strong>{user_name}</strong>!,</p>
-			<p>Bạn đã đăng ký nhận thông báo nhắc nhở bài viết của <strong>{club_name}</strong>:</p>
+			<p>Bạn đã đăng ký nhận thông báo nhắc nhở bài viết <strong>{post_title}</strong>:</p>
 
 			<div style="background-color: #f9f9f9; border-left: 4px solid #e53935; padding: 15px; margin: 15px 0;">
-			<h3 style="margin: 0 0 10px 0; color: #111;">{post_title}</h3>
-			<p style="margin: 0; color: #d32f2f;"><strong>Hạn chót (Deadline): {deadline_str}</strong></p>
+
+			<p style="margin: 0; color: #d32f2f;"><strong>{email_message}</strong></p>
 			</div>
 
 			<p>Hãy nhanh tay hoàn thiện đơn đăng ký trước khi cổng đăng ký đóng lại nhé!</p>
 
 			<p style="text-align: center; margin-top: 25px;">
-			<a href="{action_url or '#'}" style="background-color: #1976d2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">ĐĂNG KÝ NGAY</a>
+			<a href="{action_url or '/'}" style="background-color: #1976d2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;">ĐĂNG KÝ NGAY</a>
 			</p>
 			<hr style="border: none; border-top: 1px solid #eee; margin-top: 30px;">
 			<p style="font-size: 12px; color: #888; text-align: center;">Thư này được gửi tự động từ hệ thống AmsClubHub, vui lòng không phản hồi email này.</p>
