@@ -14,7 +14,8 @@ import {
 	KeyRound,
 	CircleQuestionMark,
 } from 'lucide-react';
-import api from '@/lib/api'; // Đường dẫn import instance axios/fetch của dự án
+import api from '@/lib/api';
+import { cachedGet } from '@/lib/requestCache';
 
 const BASE_NAV_ITEMS = [
 	{ name: 'Trang chủ', href: '/', icon: Home },
@@ -43,8 +44,7 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 
 		const fetchUser = async () => {
 			try {
-				const res = await api.get('/users/me');
-				const user = res.data;
+				const user = await cachedGet('/users/me');
 
 				// Chỉ hiển thị khi là club_admin và backend trả về club_id hợp lệ
 				if (user?.role?.toLowerCase() === 'club_admin' && user?.club_id) {

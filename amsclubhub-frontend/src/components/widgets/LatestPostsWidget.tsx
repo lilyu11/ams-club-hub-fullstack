@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import api from '@/lib/api';
+import { cachedGet } from '@/lib/requestCache';
 
 interface PostItem {
 	id: number;
@@ -32,25 +32,25 @@ export default function LatestPostsWidget() {
 	useEffect(() => {
 		const fetchLatestPostsAndClubs = async () => {
 			try {
-				const [postsRes, clubsRes] = await Promise.allSettled([
-					api.get('/posts', { params: { limit: 10, sort_by: 'created_at', order: 'desc' } }),
-					api.get('/clubs'),
+				const [rawPosts, rawClubs] = await Promise.allSettled([
+					cachedGet('/posts', { limit: 10, sort_by: 'created_at', order: 'desc' }),
+					cachedGet('/clubs'),
 				]);
 
-				let rawPosts: any[] = [];
-				if (postsRes.status === 'fulfilled') {
-					rawPosts = Array.isArray(postsRes.value.data) ? postsRes.value.data : postsRes.value.data?.items || [];
+				let posts: any[] = [];
+				if (rawPosts.status === 'fulfilled') {
+					posts = Array.isArray(rawPosts.value) ? rawPosts.value : rawPosts.value?.items || [];
 				}
 
 				const clubsMap: Record<number, string> = {};
-				if (clubsRes.status === 'fulfilled') {
-					const rawClubs = Array.isArray(clubsRes.value.data) ? clubsRes.value.data : clubsRes.value.data?.items || [];
-					rawClubs.forEach((club: ClubItem) => {
+				if (rawClubs.status === 'fulfilled') {
+					const clubsData = Array.isArray(rawClubs.value) ? rawClubs.value : rawClubs.value?.items || [];
+					clubsData.forEach((club: ClubItem) => {
 						clubsMap[club.id] = club.name;
 					});
 				}
 
-				const mappedPosts: PostItem[] = rawPosts.map((post) => ({
+				const mappedPosts: PostItem[] = posts.map((post) => ({
 					...post,
 					club_name: post.club?.name || post.club_name || clubsMap[post.club_id] || 'AmsClubHub',
 				}));

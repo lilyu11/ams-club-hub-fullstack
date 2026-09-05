@@ -5,6 +5,7 @@ import { User, LogIn, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { cachedGet } from '@/lib/requestCache';
 import { getFullImageUrl } from '@/lib/utils';
 
 interface UserProfile {
@@ -37,8 +38,8 @@ export default function BriefProfileWidget() {
 
 		const fetchCurrentUser = async () => {
 			try {
-				const res = await api.get('/users/me');
-				setUser(res.data);
+				const userData = await cachedGet('/users/me');
+				setUser(userData);
 			} catch (err) {
 				setUser(null);
 			} finally {

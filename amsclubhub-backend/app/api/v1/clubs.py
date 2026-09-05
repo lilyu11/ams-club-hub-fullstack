@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 import logging
+import json
 
 from pydantic import BaseModel
 
@@ -15,6 +17,7 @@ from app.schemas.club import ClubCreate, ClubUpdate, ClubResponse, ClubDeleteCon
 from app.schemas.campaign_post import CampaignPostResponse
 from app.core.security import verify_password
 from app.schemas.auth import UserResponse
+from app.core.cache import get_cached, set_cached, invalidate, get_version, cache_key
 
 router = APIRouter(prefix="/clubs", tags=["Clubs"])
 logger = logging.getLogger(__name__)
@@ -61,6 +64,7 @@ def create_club(
 
 	db.add(new_club)
 	db.commit()
+	invalidate('clubs')
 	db.refresh(new_club)
 	return new_club
 
@@ -76,7 +80,12 @@ def get_clubs(
 	
 	# Lấy danh sách tất cả các CLB (Công khai)
 	# Hỗ trợ lọc theo category và tìm kiếm tên
-	
+
+	cache_key_name = f"clubs:v{get_version('clubs')}:{cache_key(category, search, skip, limit)}"
+	cached = get_cached(cache_key_name)
+	if cached is not None:
+		return json.loads(cached)
+
 	query = db.query(Club).order_by(Club.display_order.asc()).filter(Club.is_active == True)
 
 	if category:
@@ -89,6 +98,7 @@ def get_clubs(
 		)
 
 	clubs = query.offset(skip).limit(limit).all()
+	set_cached(cache_key_name, jsonable_encoder(clubs), ttl=60)
 	return clubs
 
 
@@ -119,6 +129,13 @@ def get_club_detail(
     is_following chỉ tính khi có access_token hợp lệ.
     """
     try:
+        version = get_version('clubs')
+        user_part = current_user.id if current_user else 'anon'
+        cache_key_name = f"club:{club_id}:v{version}:user:{user_part}:{cache_key(skip, limit)}"
+        cached = get_cached(cache_key_name)
+        if cached is not None:
+            return json.loads(cached)
+
         club = get_club_by_identifier(club_id, db)
 
         posts = db.query(CampaignPost).filter(CampaignPost.club_id == club.id)\
@@ -131,7 +148,9 @@ def get_club_detail(
                 ClubFollower.club_id == club.id
             ).first() is not None
 
-        return ClubDetailResponse(club=club, posts=posts, is_following=is_following)
+        result = ClubDetailResponse(club=club, posts=posts, is_following=is_following)
+        set_cached(cache_key_name, jsonable_encoder(result), ttl=30)
+        return result
     except HTTPException:
         raise
     except Exception as exc:
@@ -166,6 +185,7 @@ def update_club(
 		setattr(club, field, value)
 
 	db.commit()
+	invalidate('clubs')
 	db.refresh(club)
 	return club
 
@@ -210,6 +230,7 @@ def soft_delete_club(
 
 	club.is_active = False
 	db.commit()
+	invalidate('clubs')
 
 	return {"message": f"Đã vô hiệu hóa câu lạc bộ {club.name} thành công."}
 
@@ -294,6 +315,7 @@ def get_followed_clubs(
 	current_user: User = Depends(get_current_user)
 ):
 	follows = db.query(ClubFollower).join(Club, ClubFollower.club_id == Club.id)\
+	.options(joinedload(ClubFollower.club))\
 	.filter(ClubFollower.user_id == current_user.id).order_by(Club.display_order.asc()).all()
 
 	# Lọc ra các CLB mà người dùng đang follow (CLB active và không bị xóa)

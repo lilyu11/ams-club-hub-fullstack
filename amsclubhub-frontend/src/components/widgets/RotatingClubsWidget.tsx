@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Users, Shield } from 'lucide-react';
 import Link from 'next/link';
-import api from '@/lib/api';
+import { cachedGet } from '@/lib/requestCache';
 import { getFullImageUrl } from '@/lib/utils';
 
 interface ClubItem {
@@ -28,10 +28,10 @@ export default function RotatingClubsWidget() {
 	useEffect(() => {
 		const fetchClubs = async () => {
 			try {
-				const res = await api.get('/clubs');
-				const data = Array.isArray(res.data) ? res.data : res.data?.items || [];
-				setAllClubs(data);
-				rotateClubs(data);
+				const data = await cachedGet('/clubs');
+				const clubs = Array.isArray(data) ? data : data?.items || [];
+				setAllClubs(clubs);
+				rotateClubs(clubs);
 			} catch (err) {
 				console.error('Lỗi lấy danh sách CLB:', err);
 			} finally {

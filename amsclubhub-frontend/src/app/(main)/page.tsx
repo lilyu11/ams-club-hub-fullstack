@@ -9,6 +9,7 @@ export default function HomePage() {
 	const [activeTab, setActiveTab] = useState<'forYou' | 'following'>('forYou');
 	const [posts, setPosts] = useState<PostData[]>([]);
 	const [followedClubIds, setFollowedClubIds] = useState<Set<number | string | undefined>>(new Set());
+	const [remindedPostIds, setRemindedPostIds] = useState<Set<string>>(new Set());
 	const [loading, setLoading] = useState(true);
 
 	const fetchFeedPosts = useCallback(async () => {
@@ -18,12 +19,32 @@ export default function HomePage() {
 			const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 			const sevenDaysAgo = Date.now() - SEVEN_DAYS_MS;
 
-			// Gọi đồng thời API Bài viết, API CLB và API CLB đã follow
-			const [postsRes, clubsRes, followedRes] = await Promise.allSettled([
+			// Gọi đồng thời API Bài viết, API CLB, API CLB đã follow.
+			// Lấy 1 lần duy nhất danh sách reminders để truyền xuống PostCard (tránh mỗi card gọi 1 request).
+			const token = localStorage.getItem('access_token');
+			const calls: Promise<any>[] = [
 			api.get('/posts', { params: { limit: 200, sort_by: 'created_at', order: 'desc', type: 'POST' } }),
 			api.get('/clubs', { params: { limit: 100 } }),
 			api.get('/clubs/followed/me'),
-			]);
+			];
+			if (token) {
+			calls.push(api.get('/reminders/me'));
+			}
+
+			const [postsRes, clubsRes, followedRes, remindersRes] = await Promise.allSettled(calls);
+
+			// Tập hợp ID các bài đã được đặt nhắc nhở (để khởi tạo nút "Đã bật nhắc nhở")
+			const remindedSet = new Set<string>();
+			if (remindersRes && remindersRes.status === 'fulfilled') {
+			const rawReminders = Array.isArray(remindersRes.value.data)
+				? remindersRes.value.data
+				: remindersRes.value.data?.items || remindersRes.value.data?.data || [];
+			rawReminders.forEach((r: any) => {
+				const pid = r?.campaign_post_id || r?.campaign_post?.id;
+				if (pid != null) remindedSet.add(String(pid));
+			});
+			}
+			setRemindedPostIds(remindedSet);
 
 			// Lấy danh sách bài viết từ Response
 			let rawPosts: any[] = [];
@@ -160,6 +181,7 @@ export default function HomePage() {
 				post={post}
 				isFollowedInitial={followedClubIds.has(post.club_id)}
 				canEditClub={false}
+				remindedPostIds={remindedPostIds}
 				/>
 			))}
 			</div>

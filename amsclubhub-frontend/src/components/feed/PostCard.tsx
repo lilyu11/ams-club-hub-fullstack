@@ -25,6 +25,7 @@ interface PostCardProps {
 	canEditClub?: boolean; // Quyền chỉnh sửa/xóa bài viết
 	onEdit?: (post: PostData) => void;
 	onDelete?: (post: PostData) => void;
+	remindedPostIds?: Set<string>; // Từ trang feed (fetch 1 lần), tránh mỗi card gọi /reminders/me
 }
 
 export default function PostCard({
@@ -33,6 +34,7 @@ export default function PostCard({
 	canEditClub = false,
 	onEdit,
 	onDelete,
+	remindedPostIds,
 }: PostCardProps) {
 	// Ưu tiên lấy trạng thái follow từ prop truyền vào
 	const [isFollowing, setIsFollowing] = useState(isFollowedInitial || !!post.is_following);
@@ -46,6 +48,13 @@ export default function PostCard({
 	const menuRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
+		// Nếu trang cha đã fetch /reminders/me 1 lần và truyền xuống -> dùng trực tiếp,
+		// không gọi thêm request. Các trang khác chưa truyền prop -> fallback fetch cũ
+		if (remindedPostIds) {
+			setIsReminded(remindedPostIds.has(String(post.id)));
+			return;
+		}
+
 		const checkReminderStatus = async () => {
 			const token = localStorage.getItem('access_token');
 			if (!token) return; // EDITINGRN show toast hiện bạn chưa đăng nhập
@@ -70,7 +79,7 @@ export default function PostCard({
 		};
 
 		checkReminderStatus();
-	}, [post.id]);
+	}, [post.id, remindedPostIds]);
 
 	// Cập nhật lại state khi prop thay đổi
 	useEffect(() => {

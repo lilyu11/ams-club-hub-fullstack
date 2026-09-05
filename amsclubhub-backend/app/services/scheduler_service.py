@@ -7,6 +7,7 @@ from app.models.campaign_post import CampaignPost
 from app.models.club import ClubFollower
 from app.models.user import UserRole
 from app.services.email_service import send_reminder_email
+from sqlalchemy import text
 
 scheduler = BackgroundScheduler()
 
@@ -75,6 +76,7 @@ def check_and_send_pending_reminders():
 def sync_auto_reminders():
 	# Hệ thống chủ động tạo reminder cho bài đăng có deadline còn trong tương lai,
 	# cho mọi follower (student, đã bật auto_reminder) của CLB sở hữu bài — KHÔNG phụ thuộc user mở trang.
+	# Dùng set-based SQL thay vì vòng lặp Python để tránh O(posts × followers) round-trip tới DB remote.
 	db = SessionLocal()
 	try:
 		now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -89,34 +91,41 @@ def sync_auto_reminders():
 		]
 
 		created = 0
-		updated = 0
 		for post in future_posts:
-			followers = db.query(ClubFollower).filter(ClubFollower.club_id == post.club_id).all()
-			for follow in followers:
-				user = follow.user
-				if not user or not user.is_active or not user.auto_reminder:
-					continue
-				if user.role in (UserRole.CLUB_ADMIN, UserRole.SUPER_ADMIN):
-					continue
+			# 1 câu INSERT...SELECT cho toàn bộ follower hợp lệ của CLB, tránh reminder trùng lặp
+			result = db.execute(text(
+				"""
+				INSERT INTO reminders (id, user_id, campaign_post_id, scheduled_at, created_at)
+				SELECT gen_random_uuid()::varchar(36), cf.user_id, :post_id, :deadline, now()
+				FROM club_followers cf
+				JOIN users u ON u.id = cf.user_id
+				WHERE cf.club_id = :club_id
+					AND u.is_active = TRUE
+					AND u.auto_reminder = TRUE
+					AND u.role NOT IN ('club_admin', 'super_admin')
+					AND NOT EXISTS (
+						SELECT 1 FROM reminders r
+						WHERE r.user_id = cf.user_id
+							AND r.campaign_post_id = :post_id
+					)
+				"""
+			), {"post_id": post.id, "club_id": post.club_id, "deadline": post.deadline})
+			created += result.rowcount if result.rowcount else 0
 
-				existing = db.query(Reminder).filter(
-					Reminder.user_id == user.id,
-					Reminder.campaign_post_id == post.id
-				).first()
-
-				if existing:
-					# Đồng bộ lại thời gian nhắc nếu deadline của bài đã bị sửa (chỉ khi chưa gửi)
-					if not existing.is_sent and existing.scheduled_at != post.deadline:
-						existing.scheduled_at = post.deadline
-						updated += 1
-					continue
-
-				db.add(Reminder(
-					user_id=user.id,
-					campaign_post_id=post.id,
-					scheduled_at=post.deadline
-				))
-				created += 1
+		# Đồng bộ lại scheduled_at nếu deadline của bài hoạt động đã bị sửa (chỉ khi reminder chưa gửi)
+		updated = db.execute(text(
+			"""
+			UPDATE reminders r
+			SET scheduled_at = p.deadline
+			FROM campaign_posts p
+			WHERE p.id = r.campaign_post_id
+				AND p.is_active = TRUE
+				AND p.deadline IS NOT NULL
+				AND p.deadline > :now
+				AND r.is_sent = FALSE
+				AND r.scheduled_at IS DISTINCT FROM p.deadline
+			"""
+		), {"now": now_utc_naive}).rowcount or 0
 
 		db.commit()
 		if created or updated:

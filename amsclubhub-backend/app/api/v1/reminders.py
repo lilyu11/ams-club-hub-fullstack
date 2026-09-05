@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.api.deps import get_current_user
@@ -114,7 +114,9 @@ def get_my_reminders(
 	current_user: User = Depends(get_current_user)
 ):
 	"""Lấy danh sách các bài viết mà người dùng hiện tại đã đặt nhắc nhở."""
-	return db.query(Reminder).filter(
+	return db.query(Reminder).options(
+		joinedload(Reminder.campaign_post)
+	).filter(
 		Reminder.user_id == current_user.id
 	).order_by(Reminder.created_at.desc()).all()
 

@@ -1,5 +1,7 @@
 import uuid
+import json
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.encoders import jsonable_encoder
 from sqlalchemy import or_, cast, String
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -10,6 +12,8 @@ from app.models.campaign_post import CampaignPost
 from app.api.v1.clubs import get_club_by_identifier
 from app.schemas.campaign_post import CampaignPostCreate, CampaignPostUpdate, CampaignPostResponse
 from app.models.club import Club
+
+from app.core.cache import get_cached, set_cached, invalidate, get_version, cache_key
 
 router = APIRouter(tags=["Campaign Posts"])
 
@@ -41,6 +45,7 @@ def create_campaign_post(
 
 	db.add(new_post)
 	db.commit()
+	invalidate('posts')
 	db.refresh(new_post)
 	return new_post
 
@@ -54,7 +59,12 @@ def get_campaign_posts(
 	limit: int = 20,
 	db: Session = Depends(get_db)
 ):
-	"""Lấy bảng tin các bài viết (Newsfeed công khai)"""
+	# Lấy bảng tin các bài viết (Newsfeed công khai)
+	cache_key_name = f"posts:v{get_version('posts')}:{cache_key(club_identifier, search, skip, limit)}"
+	cached = get_cached(cache_key_name)
+	if cached is not None:
+		return json.loads(cached)
+
 	query = db.query(CampaignPost)
 
 	# Lọc CLB theo ID, code hoặc name
@@ -75,6 +85,7 @@ def get_campaign_posts(
 		query = query.filter(CampaignPost.title.ilike(f"%{search}%"))
 
 	posts = query.order_by(CampaignPost.created_at.desc()).offset(skip).limit(limit).all()
+	set_cached(cache_key_name, jsonable_encoder(posts), ttl=20)
 	return posts
 
 # Xem chi tiết bài viết
@@ -117,6 +128,7 @@ def update_campaign_post(
 		setattr(post, field, value)
 
 	db.commit()
+	invalidate('posts')
 	db.refresh(post)
 	return post
 
@@ -144,6 +156,7 @@ def delete_campaign_post(
 
 	db.delete(post)
 	db.commit()
+	invalidate('posts')
 	return None
 
 # # Route cho Like & Save UNDONE toggle like / save
