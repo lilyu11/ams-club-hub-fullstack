@@ -65,16 +65,42 @@ export default function NotificationsPage() {
 		checkAuth();
 	}, []);
 
+	// Đồng bộ tùy chọn Auto-Reminder với backend khi đã đăng nhập
+	useEffect(() => {
+		if (!isAuthenticated) return;
+		api
+			.get('/reminders/preferences')
+			.then((res) => {
+				const value = !!res.data?.auto_reminder;
+				setAutoEmailReminder(value);
+				if (typeof window !== 'undefined') {
+					localStorage.setItem('auto_email_reminder', JSON.stringify(value));
+				}
+			})
+			.catch((err) => console.error('Lỗi tải tùy chọn auto reminder:', err));
+	}, [isAuthenticated]);
+
 	const isNew = (dateString: string) => {
 		const diffInMs = new Date().getTime() - new Date(dateString).getTime();
 		const diffInDays = diffInMs / (1000 * 60 * 60 * 24);
 		return diffInDays < 3;
 	};
 
-	const handleToggleAutoReminder = (checked: boolean) => {
+	const handleToggleAutoReminder = async (checked: boolean) => {
+		// Cập nhật tối ưu (optimistic) trước, rồi lưu lên backend
 		setAutoEmailReminder(checked);
 		if (typeof window !== 'undefined') {
 			localStorage.setItem('auto_email_reminder', JSON.stringify(checked));
+		}
+		try {
+			await api.put('/reminders/preferences', { auto_reminder: checked });
+		} catch (err) {
+			console.error('Không thể cập nhật tùy chọn auto reminder:', err);
+			// Lưu thất bại → hoàn tác toggle
+			setAutoEmailReminder(!checked);
+			if (typeof window !== 'undefined') {
+				localStorage.setItem('auto_email_reminder', JSON.stringify(!checked));
+			}
 		}
 	};
 
@@ -114,7 +140,6 @@ export default function NotificationsPage() {
 				console.error('Lỗi tải danh sách tất cả CLB:', e);
 			}
 
-			const existingRemindedPostIds = new Set<string>();
 			try {
 				const remindersRes = await api.get('/reminders/me');
 				const remindersList = Array.isArray(remindersRes.data)
@@ -122,9 +147,6 @@ export default function NotificationsPage() {
 					: remindersRes.data?.items || [];
 
 				remindersList.forEach((rem: any) => {
-					if (rem.campaign_post_id) {
-						existingRemindedPostIds.add(rem.campaign_post_id);
-					}
 					const campaignPost = rem.campaign_post;
 					const targetClub = campaignPost?.club_id ? allClubsMap.get(campaignPost.club_id) : null;
 
@@ -159,14 +181,6 @@ export default function NotificationsPage() {
 						const postTime = new Date(post.created_at || post.date).getTime();
 						if (now - postTime > THREE_WEEKS_MS) continue;
 
-						const isDeadlineValid = post.deadline && new Date(post.deadline).getTime() > now;
-						const hasBeenReminded = existingRemindedPostIds.has(post.id);
-
-						if (autoEmailReminder && isDeadlineValid && !hasBeenReminded) {
-							existingRemindedPostIds.add(post.id);
-							api.post(`/posts/${post.id}/remind`).catch(() => { });
-						}
-
 						validItems.push({
 							id: `post_${post.id}`,
 							title: club.name || 'Câu lạc bộ',
@@ -197,7 +211,7 @@ export default function NotificationsPage() {
 		} finally {
 			setLoading(false);
 		}
-	}, [autoEmailReminder, isAuthenticated]);
+	}, [isAuthenticated]);
 
 	useEffect(() => {
 		if (isAuthenticated) {

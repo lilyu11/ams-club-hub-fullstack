@@ -15,3 +15,7 @@ class ReminderResponse(BaseModel):
 
 
 	model_config = ConfigDict(from_attributes=True)
+
+
+class ReminderPreferences(BaseModel):
+	auto_reminder: bool

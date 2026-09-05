@@ -8,7 +8,7 @@ from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.campaign_post import CampaignPost
 from app.models.reminder import Reminder
-from app.schemas.reminder import ReminderResponse
+from app.schemas.reminder import ReminderResponse, ReminderPreferences
 
 router = APIRouter(tags=["Reminders"])
 
@@ -117,3 +117,26 @@ def get_my_reminders(
 	return db.query(Reminder).filter(
 		Reminder.user_id == current_user.id
 	).order_by(Reminder.created_at.desc()).all()
+
+
+# Xem tùy chọn Auto-Reminder của người dùng
+@router.get("/reminders/preferences")
+def get_reminder_preferences(
+	db: Session = Depends(get_db),
+	current_user: User = Depends(get_current_user)
+):
+	"""Lấy tùy chọn tự động đặt nhắc nhở của người dùng."""
+	return {"auto_reminder": bool(current_user.auto_reminder)}
+
+
+# Cập nhật tùy chọn Auto-Reminder của người dùng
+@router.put("/reminders/preferences")
+def update_reminder_preferences(
+	payload: ReminderPreferences,
+	db: Session = Depends(get_db),
+	current_user: User = Depends(get_current_user)
+):
+	"""Bật/tắt tự động đặt nhắc nhở. Hệ thống sẽ tạo reminder tự động cho các bài viết có deadline."""
+	current_user.auto_reminder = payload.auto_reminder
+	db.commit()
+	return {"auto_reminder": bool(current_user.auto_reminder)}

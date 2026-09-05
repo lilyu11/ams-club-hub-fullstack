@@ -3,6 +3,9 @@ from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.core.database import SessionLocal
 from app.models.reminder import Reminder
+from app.models.campaign_post import CampaignPost
+from app.models.club import ClubFollower
+from app.models.user import UserRole
 from app.services.email_service import send_reminder_email
 
 scheduler = BackgroundScheduler()
@@ -69,6 +72,62 @@ def check_and_send_pending_reminders():
 		db.close()
 
 
+def sync_auto_reminders():
+	# Hệ thống chủ động tạo reminder cho bài đăng có deadline còn trong tương lai,
+	# cho mọi follower (student, đã bật auto_reminder) của CLB sở hữu bài — KHÔNG phụ thuộc user mở trang.
+	db = SessionLocal()
+	try:
+		now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+
+		# deadline lưu dạng naive-UTC → lọc bằng Python để không phụ thuộc timezone session của DB
+		future_posts = [
+			p for p in db.query(CampaignPost).filter(
+				CampaignPost.deadline.isnot(None),
+				CampaignPost.is_active == True
+			).all()
+			if p.deadline and p.deadline > now_utc_naive
+		]
+
+		created = 0
+		updated = 0
+		for post in future_posts:
+			followers = db.query(ClubFollower).filter(ClubFollower.club_id == post.club_id).all()
+			for follow in followers:
+				user = follow.user
+				if not user or not user.is_active or not user.auto_reminder:
+					continue
+				if user.role in (UserRole.CLUB_ADMIN, UserRole.SUPER_ADMIN):
+					continue
+
+				existing = db.query(Reminder).filter(
+					Reminder.user_id == user.id,
+					Reminder.campaign_post_id == post.id
+				).first()
+
+				if existing:
+					# Đồng bộ lại thời gian nhắc nếu deadline của bài đã bị sửa (chỉ khi chưa gửi)
+					if not existing.is_sent and existing.scheduled_at != post.deadline:
+						existing.scheduled_at = post.deadline
+						updated += 1
+					continue
+
+				db.add(Reminder(
+					user_id=user.id,
+					campaign_post_id=post.id,
+					scheduled_at=post.deadline
+				))
+				created += 1
+
+		db.commit()
+		if created or updated:
+			print(f"🤖 [Auto-Reminder] Đã tạo {created} và cập nhật {updated} nhắc nhở tự động.")
+	except Exception as e:
+		print(f"❌ [Auto-Reminder Error]: {str(e)}")
+		db.rollback()
+	finally:
+		db.close()
+
+
 def cleanup_old_reminders():
 	# Hàm chạy ngầm 24h/lần để xóa bớt dữ liệu cũ/quá hạn
 	db = SessionLocal()
@@ -100,7 +159,17 @@ def start_scheduler():
 		replace_existing=True,
 		max_instances=1
 	)
-	
+
+	# Chạy Cron Job tự tạo reminder cho follower (auto_reminder bật) mỗi 10 phút
+	scheduler.add_job(
+		sync_auto_reminders,
+		'interval',
+		minutes=10,
+		id="auto_reminder_sync",
+		replace_existing=True,
+		max_instances=1
+	)
+
 	# Chạy Cron Job dọn dẹp DB mỗi ngày lúc 00:00
 	scheduler.add_job(
 		cleanup_old_reminders,
@@ -110,6 +179,6 @@ def start_scheduler():
 		id="cleanup_job",
 		replace_existing=True
 	)
-	
+
 	scheduler.start()
-	print("🚀 APScheduler đã khởi động (Quét reminder gửi mỗi 5 phút & dọn dẹp hàng ngày)...")
+	print(f"🚀 APScheduler đã khởi động với jobs: {[job.id for job in scheduler.get_jobs()]}")

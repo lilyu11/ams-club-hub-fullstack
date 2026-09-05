@@ -30,6 +30,7 @@ class User(Base):
 	phone_number = Column(String(20), nullable=True)
 	is_active = Column(Boolean, default=True, nullable=False)
 	created_at = Column(DateTime, server_default=func.now(), nullable=False)
+	auto_reminder = Column(Boolean, default=True, nullable=False, server_default="true")
 
 	# Relationships
 	clubs = relationship("Club", back_populates="admin")

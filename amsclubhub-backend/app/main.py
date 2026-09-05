@@ -1,4 +1,5 @@
 import os
+import sqlalchemy as sa
 from app.services.scheduler_service import start_scheduler, scheduler
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,6 +16,10 @@ from app.api.v1.reminders import router as reminders_router
 
 import app.models  # Import để SQLAlchemy nạp toàn bộ Models vào RAM
 Base.metadata.create_all(bind=engine) # Tự động tạo các bảng còn thiếu trong DB khi server chạy
+
+# create_all KHÔNG thêm cột mới vào bảng đã có sẵn → đảm bảo cột auto_reminder tồn tại (idempotent)
+with engine.begin() as conn:
+	conn.execute(sa.text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_reminder BOOLEAN NOT NULL DEFAULT TRUE"))
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
