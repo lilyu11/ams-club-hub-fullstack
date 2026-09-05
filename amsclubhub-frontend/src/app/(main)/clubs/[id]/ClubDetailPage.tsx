@@ -338,6 +338,7 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 				image_url: postImageUrl.trim() || null,
 				action_url: postFormUrl.trim() || null,
 				deadline: postDeadline ? new Date(postDeadline).toISOString() : null,
+				email_message: postEmailMessage.trim() || null,
 			};
 
 			setIsPostDialogOpen(false);

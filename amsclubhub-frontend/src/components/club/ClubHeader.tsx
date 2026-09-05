@@ -103,7 +103,7 @@ export default function ClubHeader({
 							{canEditClub && (
 								<button
 									onClick={onOpenEditClubModal}
-									className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-800 dark:text-white bg-zinc-100 dark:bg-black hover:bg-zinc-200 dark:hover:bg-neutral-900 rounded-full border border-zinc-300 dark:border-neutral-700 transition-all active:scale-95 whitespace-nowrap shrink-0"
+									className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold text-zinc-800 dark:text-white bg-zinc-100 dark:bg-muted hover:bg-zinc-200 dark:hover:bg-accent rounded-full border border-zinc-300 dark:border-border transition-all active:scale-95 whitespace-nowrap shrink-0"
 								>
 									<Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-500 dark:text-neutral-400 shrink-0" />
 									<span>Chỉnh sửa</span>
