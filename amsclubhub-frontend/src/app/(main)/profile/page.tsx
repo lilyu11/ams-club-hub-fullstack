@@ -64,7 +64,7 @@ export default function ProfilePage() {
 
 	const ROLE_MAP: Record<string, string> = {
 		student: 'Học sinh',
-		club_admin: 'Câu lạc bộ',
+		club_admin: 'Quản trị viên',
 		super_admin: 'Vua',
 	};
 	const displayRole = ROLE_MAP[user?.role || 'Không có'];

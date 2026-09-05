@@ -58,6 +58,11 @@ export default function PostModal({
 	submitting,
 	onSubmit,
 }: PostModalProps) {
+	// Kiểm tra xem deadline đã qua chưa (chỉ khi edit)
+	const isDeadlinePassed = editingPost && editingPost.deadline
+		? new Date(editingPost.deadline) <= new Date()
+		: false;
+
 	return (
 		<Dialog open={isOpen} onOpenChange={onClose}>
 			<DialogContent className="bg-background dark:bg-zinc-900 max-h-[85vh] overflow-y-auto overflow-x-hidden pr-4 text-foreground dark:text-zinc-100 border-border dark:border-zinc-800 sm:max-w-2xl">
@@ -146,11 +151,15 @@ export default function PostModal({
 							<div className="space-y-2">
 								<label className="text-xs font-medium text-zinc-400">
 									Hạn chót / Ngày thông báo
+									{isDeadlinePassed && (
+										<span className="ml-2 text-xs text-muted-foreground">(Đã qua deadline, không thể sửa)</span>
+									)}
 								</label>
 								<DateTimePicker
 									value={postDeadline}
 									onChange={setPostDeadline}
 									placeholder="Chọn thời gian thông báo (MM/DD/YYYY)"
+									disabled={isDeadlinePassed}
 								/>
 							</div>
 

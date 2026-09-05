@@ -84,7 +84,7 @@ export default function MainLayout({
         {/* Cột nội dung chính */}
         <main
           className={`min-h-screen flex-1 flex flex-col border-r border-border transition-all duration-200 w-full ${
-            isClubsPage || isEventsPage || isGuidesPage ? 'max-w-none' : 'max-w-[600px]'
+            isClubsPage || isEventsPage || isGuidesPage ? 'max-w-none' : 'max-w-2xl'
           }`}
         >
           {children}

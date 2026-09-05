@@ -43,7 +43,7 @@ export default function ClubHeader({
 			</div>
 
 			{/* KHU VỰC HEADER (BANNER + LOGO + THÔNG TIN) */}
-			<div className="w-full bg-white dark:bg-black rounded-3xl border border-zinc-200 dark:border-neutral-800 shadow-lg dark:shadow-2xl overflow-hidden transition-colors">
+			<div className="w-full bg-white dark:bg-card rounded-3xl border border-zinc-200 dark:border-border shadow-lg dark:shadow-2xl overflow-hidden transition-colors">
 				{/* Banner */}
 				<div className="relative w-full aspect-[3/1] sm:aspect-[16/5] bg-zinc-100 dark:bg-neutral-900 overflow-hidden">
 					<img
@@ -61,7 +61,7 @@ export default function ClubHeader({
 					<div className="flex flex-row items-end justify-between gap-4 -mt-12 sm:-mt-16 mb-4">
 
 						{/* Logo tròn viền khớp màu nền */}
-						<div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-white dark:border-black bg-white dark:bg-black shadow-xl overflow-hidden shrink-0">
+						<div className="relative h-24 w-24 sm:h-32 sm:w-32 rounded-full border-4 border-white dark:border-card bg-white dark:bg-card shadow-xl overflow-hidden shrink-0">
 							<img
 								src={getFullImageUrl(club?.logo_url) || '/static/images/default-logo.png'}
 								alt={club?.name}

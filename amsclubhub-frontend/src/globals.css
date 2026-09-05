@@ -52,33 +52,33 @@ html {
 	--radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* LIGHT MODE (X / Reddit Style: Nền trắng tinh, Card xám nhẹ #F7F9F9, Primary Xanh Brand) */
+/* LIGHT MODE (Facebook Style: Nền xám ấm #f0f2f5, Card trắng, Primary xanh Facebook) */
 :root {
-	--background: oklch(1 0 0);
-	/* #ffffff */
-	--foreground: oklch(0.145 0 0);
-	/* #0f1419 */
-	--card: oklch(0.985 0 0);
-	/* #f7f9f9 - Tách biệt nhẹ với nền */
-	--card-foreground: oklch(0.145 0 0);
+	--background: oklch(0.968 0.003 264.052);
+	/* #f0f2f5 - Xám ấm dịu mắt */
+	--foreground: oklch(0.18 0 0);
+	/* #1c1e21 - Đen nhẹ */
+	--card: oklch(0.99 0.001 264);
+	/* #fafbfc - Card xám nhẹ thay vì trắng thuần, hài hòa với nền */
+	--card-foreground: oklch(0.18 0 0);
 	--popover: oklch(1 0 0);
-	--popover-foreground: oklch(0.145 0 0);
-	--primary: oklch(0.623 0.214 259.815);
-	/* #1d9bf0 - Xanh X Brand nổi bật */
+	--popover-foreground: oklch(0.18 0 0);
+	--primary: oklch(0.574 0.195 264.364);
+	/* #1877f2 - Xanh Facebook đặc trưng */
 	--primary-foreground: oklch(1 0 0);
-	--secondary: oklch(0.95 0 0);
-	--secondary-foreground: oklch(0.145 0 0);
-	--muted: oklch(0.96 0 0);
-	--muted-foreground: oklch(0.48 0 0);
-	/* #536471 - Chữ xám phụ */
-	--accent: oklch(0.95 0 0);
-	--accent-foreground: oklch(0.145 0 0);
+	--secondary: oklch(0.96 0 0);
+	--secondary-foreground: oklch(0.18 0 0);
+	--muted: oklch(0.96 0.002 264);
+	--muted-foreground: oklch(0.48 0.01 264);
+	/* #65676b - Xám phụ Facebook */
+	--accent: oklch(0.96 0.002 264);
+	--accent-foreground: oklch(0.18 0 0);
 	--destructive: oklch(0.577 0.245 27.325);
-	--border: oklch(0.932 0 0);
-	/* #eff3f4 - Viền mảnh tinh tế */
-	--input: oklch(0.932 0 0);
-	--ring: oklch(0.623 0.214 259.815);
-	--chart-1: oklch(0.623 0.214 259.815);
+	--border: oklch(0.915 0.003 264);
+	/* #e4e6eb - Viền xám rõ */
+	--input: oklch(0.915 0.003 264);
+	--ring: oklch(0.574 0.195 264.364);
+	--chart-1: oklch(0.574 0.195 264.364);
 	--chart-2: oklch(0.556 0 0);
 	--chart-3: oklch(0.439 0 0);
 	--chart-4: oklch(0.371 0 0);
@@ -86,55 +86,55 @@ html {
 	--radius: 0.75rem;
 
 	--sidebar: oklch(1 0 0);
-	--sidebar-foreground: oklch(0.145 0 0);
-	--sidebar-primary: oklch(0.623 0.214 259.815);
+	--sidebar-foreground: oklch(0.18 0 0);
+	--sidebar-primary: oklch(0.574 0.195 264.364);
 	--sidebar-primary-foreground: oklch(1 0 0);
-	--sidebar-accent: oklch(0.95 0 0);
-	--sidebar-accent-foreground: oklch(0.145 0 0);
-	--sidebar-border: oklch(0.932 0 0);
-	--sidebar-ring: oklch(0.623 0.214 259.815);
+	--sidebar-accent: oklch(0.96 0.002 264);
+	--sidebar-accent-foreground: oklch(0.18 0 0);
+	--sidebar-border: oklch(0.915 0.003 264);
+	--sidebar-ring: oklch(0.574 0.195 264.364);
 }
 
-/* DARK MODE (X / Reddit Style: Nền đen sâu #000000, Card xám tối #16181C, Viền #2F3336) */
+/* DARK MODE (Facebook Style: Nền xám đen ấm nhẹ hơn, Card sáng hơn, Viền dịu) */
 .dark {
-	--background: oklch(0 0 0);
-	/* #000000 - Đen sâu tiết kiệm pin & dịu mắt */
-	--foreground: oklch(0.93 0 0);
-	/* #e7e9ea - Chữ sáng rõ */
-	--card: oklch(0.18 0 0);
-	/* #16181c - Card tối dịu */
-	--card-foreground: oklch(0.93 0 0);
-	--popover: oklch(0.18 0 0);
-	--popover-foreground: oklch(0.93 0 0);
-	--primary: oklch(0.623 0.214 259.815);
-	/* #1d9bf0 - Giữ xanh nổi bật trên nền đen */
+	--background: oklch(0.18 0.004 264.052);
+	/* #242526 - Nhẹ hơn, xám đen ấm */
+	--foreground: oklch(0.93 0.003 264);
+	/* #e4e6eb - Chữ sáng */
+	--card: oklch(0.23 0.004 264.052);
+	/* #2d2f31 - Card sáng hơn nền */
+	--card-foreground: oklch(0.93 0.003 264);
+	--popover: oklch(0.23 0.004 264.052);
+	--popover-foreground: oklch(0.93 0.003 264);
+	--primary: oklch(0.574 0.195 264.364);
+	/* #1877f2 - Xanh Facebook giữ nguyên */
 	--primary-foreground: oklch(1 0 0);
-	--secondary: oklch(0.22 0 0);
-	--secondary-foreground: oklch(0.93 0 0);
-	--muted: oklch(0.22 0 0);
-	--muted-foreground: oklch(0.55 0 0);
-	/* #71767b - Chữ phụ tối */
-	--accent: oklch(0.22 0 0);
-	--accent-foreground: oklch(0.93 0 0);
+	--secondary: oklch(0.26 0.004 264);
+	--secondary-foreground: oklch(0.93 0.003 264);
+	--muted: oklch(0.26 0.004 264);
+	--muted-foreground: oklch(0.62 0.008 264);
+	/* #9ea1a6 - Xám phụ sáng hơn */
+	--accent: oklch(0.26 0.004 264);
+	--accent-foreground: oklch(0.93 0.003 264);
 	--destructive: oklch(0.704 0.191 22.216);
-	--border: oklch(0.28 0 0);
-	/* #2f3336 - Viền tối chuẩn X */
-	--input: oklch(0.28 0 0);
-	--ring: oklch(0.623 0.214 259.815);
-	--chart-1: oklch(0.623 0.214 259.815);
+	--border: oklch(0.32 0.005 264);
+	/* #3e4042 - Viền sáng hơn */
+	--input: oklch(0.32 0.005 264);
+	--ring: oklch(0.574 0.195 264.364);
+	--chart-1: oklch(0.574 0.195 264.364);
 	--chart-2: oklch(0.556 0 0);
 	--chart-3: oklch(0.439 0 0);
 	--chart-4: oklch(0.371 0 0);
 	--chart-5: oklch(0.269 0 0);
 
-	--sidebar: oklch(0 0 0);
-	--sidebar-foreground: oklch(0.93 0 0);
-	--sidebar-primary: oklch(0.623 0.214 259.815);
+	--sidebar: oklch(0.18 0.004 264.052);
+	--sidebar-foreground: oklch(0.93 0.003 264);
+	--sidebar-primary: oklch(0.574 0.195 264.364);
 	--sidebar-primary-foreground: oklch(1 0 0);
-	--sidebar-accent: oklch(0.22 0 0);
-	--sidebar-accent-foreground: oklch(0.93 0 0);
-	--sidebar-border: oklch(0.28 0 0);
-	--sidebar-ring: oklch(0.623 0.214 259.815);
+	--sidebar-accent: oklch(0.26 0.004 264);
+	--sidebar-accent-foreground: oklch(0.93 0.003 264);
+	--sidebar-border: oklch(0.32 0.005 264);
+	--sidebar-ring: oklch(0.574 0.195 264.364);
 }
 
 @layer base {

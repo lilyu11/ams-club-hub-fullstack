@@ -165,12 +165,14 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 
 		// Admin không được bật thông báo
 		const userRes = await api.get('/users/me');
-		if (userRes) {
-			setCurrentUser(userRes.data);
-		}
-		if (currentUser?.role.toLowerCase() == 'club_admin' || 'super_admin') {
-			showToast('Quản trị viên không thể bật nhắc nhở', 'error');
-			return;
+		const userData = userRes?.data;
+		if (userData) {
+			setCurrentUser(userData);
+			const userRole = userData.role?.toLowerCase();
+			if (userRole === 'club_admin' || userRole === 'super_admin') {
+				showToast('Quản trị viên không thể bật nhắc nhở', 'error');
+				return;
+			}
 		}
 
 		// Kiểm tra deadline có hợp lệ và đã trôi qua so với hiện tại chưa
@@ -266,7 +268,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 	const clubName = clubInfo?.name || post.club_name || post.club?.name || `Câu lạc bộ #${clubId}`;
 
 	return (
-		<div className="max-w-2xl mx-auto min-h-screen pb-20 relative">
+		<div className="w-full min-h-screen pb-20 relative">
 			{/* Header Mũi tên tròn quay lại */}
 			<div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-4 py-2.5 border-b border-border flex items-center gap-4">
 				<button

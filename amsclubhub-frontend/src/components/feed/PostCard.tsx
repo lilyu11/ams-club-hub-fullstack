@@ -108,12 +108,14 @@ export default function PostCard({
 		
 		// Admin không được bật thông báo
 		const userRes = await api.get('/users/me');
-		if (userRes) {
-			setCurrentUser(userRes.data);
-		}
-		if (currentUser?.role.toLowerCase() == 'club_admin' || 'super_admin') {
-			showToast('Quản trị viên không thể bật nhắc nhở', 'error');
-			return;
+		const userData = userRes?.data;
+		if (userData) {
+			setCurrentUser(userData);
+			const userRole = userData.role?.toLowerCase();
+			if (userRole === 'club_admin' || userRole === 'super_admin') {
+				showToast('Quản trị viên không thể bật nhắc nhở', 'error');
+				return;
+			}
 		}
 
 		if (!post.deadline) {

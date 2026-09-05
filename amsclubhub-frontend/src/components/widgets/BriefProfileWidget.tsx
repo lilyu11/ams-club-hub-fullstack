@@ -16,7 +16,7 @@ interface UserProfile {
 
 const ROLE_MAP: Record<string, string> = {
 	student: 'Học sinh',
-	club_admin: 'Câu lạc bộ',
+	club_admin: 'Quản trị viên',
 	super_admin: 'Vua',
 };
 
@@ -115,7 +115,7 @@ export default function BriefProfileWidget() {
 		);
 	}
 
-	const displayRole = ROLE_MAP[user.role] || user.role || 'Thành viên';
+	const displayRole = ROLE_MAP[user.role] || user.role || 'Không có';
 
 	// KHI ĐÃ ĐĂNG NHẬP
 	return (
