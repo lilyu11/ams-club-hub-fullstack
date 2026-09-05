@@ -36,13 +36,13 @@ export function getFullImageUrl(path?: string | null): string {
 
 	// Chuẩn hóa đường dẫn tương đối (ví dụ: /static/images/xxx.webp)
 	const cleanPath = path.startsWith('/') ? path : `/${path}`;
-	const backendBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://ams-club-hub-fullstack.onrender.com';
+	const backendBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.amsclubhub.com';
 
 	// Tách lấy domain gốc Render (bỏ phần /api/v1)
 	try {
 		const origin = new URL(backendBaseUrl).origin;
 		return `${origin}${cleanPath}`;
 	} catch {
-		return `https://ams-club-hub-fullstack.onrender.com${cleanPath}`;
+		return `https://api.amsclubhub.com${cleanPath}`;
 	}
 }

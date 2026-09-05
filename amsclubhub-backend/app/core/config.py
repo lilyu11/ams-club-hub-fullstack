@@ -29,7 +29,7 @@ class Settings(BaseSettings):
 	BREVO_API_KEY: str = ""
 	# Sender hiển thị, dùng cho Brevo/SMTP (nên là domain ĐÃ XÁC MINH ở Brevo)
 	# Định dạng: "Tên <email@domain-verified.com>". Để trống thì fallback về SMTP.
-	EMAILS_FROM: str = "AmsClubHub <no-reply@ams-club-hub-fullstack.onrender.com>"
+	EMAILS_FROM: str = "AmsClubHub <no-reply@amsclubhub.com>"
 	EMAIL_TIMEOUT_SECONDS: float = 10.0
 
 	@property
