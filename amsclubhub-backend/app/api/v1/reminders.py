@@ -39,14 +39,15 @@ def create_reminder(
 			detail="Bài viết này không có Deadline nên không thể đặt nhắc nhở."
 		)
 
-	now_utc = datetime.now(timezone.utc)
-	
-	# Đảm bảo so sánh datetime cùng timezone
-	post_deadline = post.deadline
-	if post_deadline.tzinfo is None:
-		post_deadline = post_deadline.replace(tzinfo=timezone.utc)
+	# Dùng naive UTC nhất quán với scheduler comparison
+	now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
 
-	if post_deadline <= now_utc:
+	# Đảm bảo deadline là naive để so sánh đúng (deadline từ frontend là naive local time)
+	post_deadline = post.deadline
+	if post_deadline.tzinfo is not None:
+		post_deadline = post_deadline.replace(tzinfo=None)
+
+	if post_deadline <= now_utc_naive:
 		raise HTTPException(
 			status_code=status.HTTP_400_BAD_REQUEST,
 			detail="Bài viết này đã hết hạn (Deadline đã trôi qua)."

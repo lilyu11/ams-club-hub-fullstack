@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.core.database import SessionLocal
@@ -6,7 +5,7 @@ from app.models.reminder import Reminder
 from app.models.campaign_post import CampaignPost
 from app.models.club import ClubFollower
 from app.models.user import UserRole
-from app.services.email_service import send_reminder_email
+from app.services.email_service import send_reminder_email_sync
 from sqlalchemy import text
 
 scheduler = BackgroundScheduler()
@@ -15,11 +14,11 @@ scheduler = BackgroundScheduler()
 def check_and_send_pending_reminders():
 	db = SessionLocal()
 	try:
-		now_utc = datetime.now(timezone.utc)
+		now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
 
 		pending_reminders = db.query(Reminder).filter(
 			Reminder.is_sent == False,
-			Reminder.scheduled_at <= now_utc
+			Reminder.scheduled_at <= now_utc_naive
 		).all()
 
 		if not pending_reminders:
@@ -27,20 +26,23 @@ def check_and_send_pending_reminders():
 
 		print(f"🔍 [Scheduler] Phát hiện {len(pending_reminders)} nhắc nhở cần gửi mail...")
 
-		tasks = []
-		reminders_to_process = []
+		sent_count = 0
+		failed_count = 0
 
 		for reminder in pending_reminders:
 			user = reminder.user
 			post = reminder.campaign_post
 			club = post.club if post else None
 
-			if user and post:
-				deadline_format = post.deadline.strftime("%H:%M - %d/%m/%Y") if post.deadline else "Đang cập nhật"
-				club_name = club.name if club else "AmsClubHub"
+			if not user or not post:
+				print(f"⚠️  [Scheduler] Reminder {reminder.id}: user hoặc post None, bỏ qua.")
+				failed_count += 1
+				continue
 
-				# Khai báo Coroutine (Chưa cho chạy ngay)
-				coro = send_reminder_email(
+			club_name = club.name if club else "AmsClubHub"
+
+			try:
+				success = send_reminder_email_sync(
 					to_email=user.email,
 					user_name=user.full_name,
 					post_title=post.title,
@@ -48,23 +50,20 @@ def check_and_send_pending_reminders():
 					email_message=post.email_message,
 					action_url=post.action_url or post.fb_post_url
 				)
-				tasks.append(coro)
-				reminders_to_process.append(reminder)
 
-		# Chạy song song tất cả các mail bất đồng bộ trong Event Loop
-		async def run_batch_emails():
-			return await asyncio.gather(*tasks, return_exceptions=True)
-
-		if tasks:
-			# Thực thi toàn bộ danh sách gửi mail cùng lúc
-			results = asyncio.run(run_batch_emails())
-
-			# Đối chiếu kết quả trả về để đánh dấu is_sent
-			for reminder, result in zip(reminders_to_process, results):
-				if result is True:
+				if success:
 					reminder.is_sent = True
+					sent_count += 1
+					print(f"✅ [Scheduler] Gửi email thành công: {user.email} — {post.title}")
+				else:
+					failed_count += 1
+					print(f"❌ [Scheduler] Gửi email THẤT BẠI: {user.email} — {post.title}")
+			except Exception as e:
+				failed_count += 1
+				print(f"❌ [Scheduler] Lỗi khi gửi email cho {user.email}: {e}")
 
 		db.commit()
+		print(f"📊 [Scheduler] Hoàn tất: {sent_count} thành công, {failed_count} thất bại / {len(pending_reminders)} tổng.")
 
 	except Exception as e:
 		print(f"❌ [Scheduler Error]: {str(e)}")
@@ -141,11 +140,11 @@ def cleanup_old_reminders():
 	# Hàm chạy ngầm 24h/lần để xóa bớt dữ liệu cũ/quá hạn
 	db = SessionLocal()
 	try:
-		now_utc = datetime.now(timezone.utc)
+		now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
 
 		deleted_count = db.query(Reminder).filter(
-			(Reminder.is_sent == True) & (Reminder.scheduled_at < now_utc - timedelta(days=3))
-			| (Reminder.is_sent == False) & (Reminder.scheduled_at < now_utc - timedelta(days=1))
+			(Reminder.is_sent == True) & (Reminder.scheduled_at < now_utc_naive - timedelta(days=3))
+			| (Reminder.is_sent == False) & (Reminder.scheduled_at < now_utc_naive - timedelta(days=1))
 		).delete(synchronize_session=False)
 
 		db.commit()
