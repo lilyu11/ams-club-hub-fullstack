@@ -124,7 +124,7 @@ def sync_auto_reminders():
 				WHERE cf.club_id = :club_id
 					AND u.is_active = TRUE
 					AND u.auto_reminder = TRUE
-					AND u.role NOT IN ('club_admin', 'super_admin')
+					AND u.role::text NOT IN ('club_admin', 'super_admin')
 					AND NOT EXISTS (
 						SELECT 1 FROM reminders r
 						WHERE r.user_id = cf.user_id
