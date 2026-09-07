@@ -117,8 +117,8 @@ def sync_auto_reminders():
 			# 1 câu INSERT...SELECT cho toàn bộ follower hợp lệ của CLB, tránh reminder trùng lặp
 			result = db.execute(text(
 				"""
-				INSERT INTO reminders (id, user_id, campaign_post_id, scheduled_at, created_at)
-				SELECT gen_random_uuid()::varchar(36), cf.user_id, :post_id, :deadline, now()
+				INSERT INTO reminders (id, user_id, campaign_post_id, scheduled_at, is_sent, created_at)
+				SELECT gen_random_uuid()::varchar(36), cf.user_id, :post_id, :deadline, FALSE, now()
 				FROM club_followers cf
 				JOIN users u ON u.id = cf.user_id
 				WHERE cf.club_id = :club_id
