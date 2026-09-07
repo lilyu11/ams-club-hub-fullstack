@@ -15,11 +15,13 @@ def read_current_user(
 	db: Session = Depends(get_db)
 ):
 	managed_club_id = None
+	club_slug = None
 
 	if current_user.role == UserRole.CLUB_ADMIN:
 		club = db.query(Club).filter(Club.admin_id == current_user.id).first()
 		if club:
 			managed_club_id = club.id
+			club_slug = getattr(club, 'slug', None)
 
 	# Chỉ trả về các trường an toàn, KHÔNG leak hashed_password
 	return UserResponse(
@@ -30,5 +32,5 @@ def read_current_user(
 		role=current_user.role,
 		is_active=current_user.is_active,
 		club_id=managed_club_id,
-		club_slug=club.slug if club else None
+		club_slug=club_slug
 	)
