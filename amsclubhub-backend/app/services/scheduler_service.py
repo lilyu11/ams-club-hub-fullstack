@@ -114,6 +114,10 @@ def sync_auto_reminders():
 
 		created = 0
 		for post in future_posts:
+			# Debug: log thông tin bài trước khi INSERT
+			follower_count = db.query(ClubFollower).filter(ClubFollower.club_id == post.club_id).count()
+			print(f"🤖 [Auto-Reminder] Post '{post.title}' deadline={post.deadline}, club_id={post.club_id}, followers={follower_count}")
+
 			# 1 câu INSERT...SELECT cho toàn bộ follower hợp lệ của CLB, tránh reminder trùng lặp
 			result = db.execute(text(
 				"""
@@ -133,6 +137,7 @@ def sync_auto_reminders():
 				"""
 			), {"post_id": post.id, "club_id": post.club_id, "deadline": post.deadline})
 			created += result.rowcount if result.rowcount else 0
+			print(f"🤖 [Auto-Reminder] Post '{post.title}': inserted {result.rowcount or 0} reminders")
 
 		# Đồng bộ lại scheduled_at nếu deadline của bài hoạt động đã bị sửa (chỉ khi reminder chưa gửi)
 		updated = db.execute(text(

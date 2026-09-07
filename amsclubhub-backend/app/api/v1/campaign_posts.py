@@ -46,6 +46,15 @@ def create_campaign_post(
 	db.add(new_post)
 	db.commit()
 	invalidate('posts')
+
+	# Tạo reminder ngay cho follower nếu bài có deadline — không chờ cron 10 phút
+	if new_post.deadline and new_post.is_active:
+		from app.services.scheduler_service import sync_auto_reminders
+		try:
+			sync_auto_reminders()
+		except Exception as e:
+			print(f"⚠️ [CreatePost] sync_auto_reminders sau khi tạo post lỗi: {type(e).__name__}: {e}")
+
 	db.refresh(new_post)
 	return new_post
 
@@ -129,6 +138,14 @@ def update_campaign_post(
 
 	db.commit()
 	invalidate('posts')
+
+	# Đồng bộ lại reminder khi deadline thay đổi — không chờ cron 10 phút
+	from app.services.scheduler_service import sync_auto_reminders
+	try:
+		sync_auto_reminders()
+	except Exception as e:
+		print(f"⚠️ [UpdatePost] sync_auto_reminders sau khi sửa post lỗi: {type(e).__name__}: {e}")
+
 	db.refresh(post)
 	return post
 
