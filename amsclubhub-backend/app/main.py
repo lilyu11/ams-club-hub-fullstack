@@ -1,6 +1,12 @@
 import os
 import sqlalchemy as sa
-from app.services.scheduler_service import start_scheduler, scheduler
+from app.services.scheduler_service import (
+	start_scheduler,
+	scheduler,
+	check_and_send_pending_reminders,
+	sync_auto_reminders,
+)
+import asyncio
 from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -50,6 +56,31 @@ def _backfill_club_slugs():
 
 _backfill_club_slugs()
 
+# ---------------------------------------------------------------------------
+# Backstop cho email reminder — Render free tier có thể làm APScheduler thread
+# không chạy đều. Ở đây, mỗi khi có REQUEST chạm vào server, sau khi trả response
+# chúng ta lặng lẽ chạy sync+send (tối đa 1 lần/90 giây) để đảm bảo mail vẫn được
+# gửi kể cả khi scheduler nền bị "ngủ quên".
+# ---------------------------------------------------------------------------
+_last_backstop_run = -1e9  # cho phép lần chạy ĐẦU TIÊN luôn được thực thi
+_backstop_lock = asyncio.Lock()
+
+
+async def _run_backstop():
+	global _last_backstop_run
+	now = asyncio.get_running_loop().time()
+	if now - _last_backstop_run < 90:
+		return
+	async with _backstop_lock:
+		if now - _last_backstop_run < 90:
+			return
+		_last_backstop_run = now
+	# Chạy trong thread để không chặn event loop (hàm sync dùng SessionLocal riêng)
+	await asyncio.to_thread(sync_auto_reminders)
+	await asyncio.to_thread(check_and_send_pending_reminders)
+	print("🔥 [Backstop] Đã chạy sync_auto_reminders + check_and_send_pending_reminders do có request.")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
 	# Khởi chạy Redis
@@ -80,6 +111,9 @@ origins = [
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
 	response = await call_next(request)
+	# Backstop: sau khi trả response cho người dùng, lặng lẽ chạy reminder sync + send
+	# (throttle 90s) phòng khi APScheduler nền không chạy trên Render free tier.
+	asyncio.create_task(_run_backstop())
 	# Security headers
 	response.headers["X-Content-Type-Options"] = "nosniff"
 	response.headers["X-Frame-Options"] = "DENY"
@@ -130,3 +164,37 @@ app.include_router(reminders_router, prefix="/api/v1")
 @app.get("/")
 def root():
 	return {"message": "Welcome to AmsClubHub API!"}
+
+
+# Chẩn đoán Scheduler - kiểm tra scheduler có đang chạy và có bao nhiêu job + reminder pending
+@app.get("/api/v1/scheduler/status")
+def scheduler_status():
+	from app.core.database import SessionLocal
+	from app.models.reminder import Reminder
+	from datetime import datetime, timezone
+
+	jobs = [{"id": j.id, "next_run": str(j.next_run_time)} for j in scheduler.get_jobs()]
+
+	db = SessionLocal()
+	try:
+		now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+		pending = db.query(Reminder).filter(
+			Reminder.is_sent == False,
+			Reminder.scheduled_at <= now_utc_naive
+		).count()
+		unsent_total = db.query(Reminder).filter(Reminder.is_sent == False).count()
+		return {
+			"scheduler_running": scheduler.running,
+			"jobs": jobs,
+			"pending_due_now": pending,
+			"unsent_total": unsent_total,
+		}
+	finally:
+		db.close()
+
+
+# Chẩn đoán - chạy ngay vòng gửi mail (chỉ dùng để debug)
+@app.get("/api/v1/scheduler/run-now")
+def scheduler_run_now():
+	check_and_send_pending_reminders()
+	return {"message": "Đã chạy check_and_send_pending_reminders()"}

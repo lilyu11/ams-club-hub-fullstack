@@ -274,7 +274,13 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 			<div className="sticky top-0 z-30 bg-background/80 backdrop-blur-md px-4 py-2.5 border-b border-border flex items-center gap-4">
 				<button
 					type="button"
-					onClick={() => router.back()}
+					onClick={() => {
+						if (typeof window !== 'undefined' && window.history.length > 2) {
+							router.back();
+						} else {
+							router.push('/');
+						}
+					}}
 					className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted text-foreground transition shrink-0"
 					title="Quay lại"
 				>

@@ -1,5 +1,6 @@
 from datetime import datetime, timezone, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
+from sqlalchemy.orm import joinedload
 from app.core.database import SessionLocal
 from app.models.reminder import Reminder
 from app.models.campaign_post import CampaignPost
@@ -16,10 +17,19 @@ def check_and_send_pending_reminders():
 	try:
 		now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
 
-		pending_reminders = db.query(Reminder).filter(
-			Reminder.is_sent == False,
-			Reminder.scheduled_at <= now_utc_naive
-		).all()
+		# Eager-load user + campaign_post + club để tránh lazy-loading fail trong background thread
+		pending_reminders = (
+			db.query(Reminder)
+			.options(
+				joinedload(Reminder.user),
+				joinedload(Reminder.campaign_post).joinedload(CampaignPost.club),
+			)
+			.filter(
+				Reminder.is_sent == False,
+				Reminder.scheduled_at <= now_utc_naive,
+			)
+			.all()
+		)
 
 		if not pending_reminders:
 			return
@@ -35,7 +45,12 @@ def check_and_send_pending_reminders():
 			club = post.club if post else None
 
 			if not user or not post:
-				print(f"⚠️  [Scheduler] Reminder {reminder.id}: user hoặc post None, bỏ qua.")
+				print(f"⚠️  [Scheduler] Reminder {reminder.id}: user=None({user is None}), post=None({post is None}), bỏ qua.")
+				failed_count += 1
+				continue
+
+			if not user.email:
+				print(f"⚠️  [Scheduler] Reminder {reminder.id}: user.email is empty, bỏ qua.")
 				failed_count += 1
 				continue
 
@@ -57,10 +72,10 @@ def check_and_send_pending_reminders():
 					print(f"✅ [Scheduler] Gửi email thành công: {user.email} — {post.title}")
 				else:
 					failed_count += 1
-					print(f"❌ [Scheduler] Gửi email THẤT BẠI: {user.email} — {post.title}")
+					print(f"❌ [Scheduler] Gửi email THẤT BẠI (Brevo return False): {user.email} — {post.title}")
 			except Exception as e:
 				failed_count += 1
-				print(f"❌ [Scheduler] Lỗi khi gửi email cho {user.email}: {e}")
+				print(f"❌ [Scheduler] Exception khi gửi email cho {user.email}: {type(e).__name__}: {e}")
 
 		db.commit()
 		print(f"📊 [Scheduler] Hoàn tất: {sent_count} thành công, {failed_count} thất bại / {len(pending_reminders)} tổng.")
@@ -88,6 +103,14 @@ def sync_auto_reminders():
 			).all()
 			if p.deadline and p.deadline > now_utc_naive
 		]
+
+		# Log chẩn đoán — nếu không có bài có deadline sắp tới, cảnh báo để dễ dò trên Render
+		if not future_posts:
+			total_with_deadline = db.query(CampaignPost).filter(
+				CampaignPost.deadline.isnot(None),
+				CampaignPost.is_active == True
+			).count()
+			print(f"🤖 [Auto-Reminder] Không có bài nào có deadline tương lai ({total_with_deadline} bài có deadline đang active).")
 
 		created = 0
 		for post in future_posts:
