@@ -161,13 +161,13 @@ app.include_router(upload_router, prefix="/api/v1")
 app.include_router(reminders_router, prefix="/api/v1")
 
 
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
 	return {"message": "Welcome to AmsClubHub API!"}
 
 
 # Chẩn đoán Scheduler - kiểm tra scheduler có đang chạy và có bao nhiêu job + reminder pending
-@app.get("/api/v1/scheduler/status")
+@app.api_route("/api/v1/scheduler/status", methods=["GET", "HEAD"])
 def scheduler_status():
 	from app.core.database import SessionLocal
 	from app.models.reminder import Reminder
@@ -194,7 +194,7 @@ def scheduler_status():
 
 
 # Chẩn đoán - chạy ngay vòng gửi mail (chỉ dùng để debug)
-@app.get("/api/v1/scheduler/run-now")
+@app.api_route("/api/v1/scheduler/run-now", methods=["GET", "HEAD"])
 def scheduler_run_now():
 	check_and_send_pending_reminders()
 	return {"message": "Đã chạy check_and_send_pending_reminders()"}
