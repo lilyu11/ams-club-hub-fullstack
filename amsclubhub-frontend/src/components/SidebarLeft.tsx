@@ -33,12 +33,12 @@ interface SidebarLeftProps {
 
 export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 	const pathname = usePathname();
-	const [myClubId, setMyClubId] = useState<string | null>(null);
+	const [myClubSlug, setMyClubSlug] = useState<string | null>(null);
 
 	useEffect(() => {
 		const token = localStorage.getItem('token') || localStorage.getItem('access_token');
 		if (!token) {
-			setMyClubId(null);
+			setMyClubSlug(null);
 			return;
 		}
 
@@ -46,15 +46,15 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 			try {
 				const user = await cachedGet('/users/me');
 
-				// Chỉ hiển thị khi là club_admin và backend trả về club_id hợp lệ
-				if (user?.role?.toLowerCase() === 'club_admin' && user?.club_id) {
-					setMyClubId(user.club_id);
+				// Chỉ hiển thị khi là club_admin và backend trả về club_slug hợp lệ
+				if (user?.role?.toLowerCase() === 'club_admin' && user?.club_slug) {
+					setMyClubSlug(user.club_slug);
 				} else {
-					setMyClubId(null);
+					setMyClubSlug(null);
 				}
 			} catch (err) {
 				console.error('Lỗi lấy thông tin user ở Sidebar:', err);
-				setMyClubId(null);
+				setMyClubSlug(null);
 			}
 		};
 
@@ -66,10 +66,10 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 	const navItems = [...BASE_NAV_ITEMS];
 
 	// Nút 'Câu lạc bộ của tôi' chèn vào vị trí số 3 (ngay dưới "Câu lạc bộ")
-	if (myClubId) {
+	if (myClubSlug) {
 		navItems.splice(2, 0, {
 			name: 'Câu lạc bộ của tôi',
-			href: `/clubs/${myClubId}`,
+			href: `/clubs/${myClubSlug}`,
 			icon: KeyRound,
 		});
 	}
@@ -99,7 +99,7 @@ export default function SidebarLeft({ isMobile = false }: SidebarLeftProps) {
 							}
 
 							// Nếu đang ở {/clubs/xyz} thì không làm sáng {/clubs}
-							if (item.href === '/clubs' && myClubId && pathname.startsWith(`/clubs/${myClubId}`)) {
+							if (item.href === '/clubs' && myClubSlug && pathname.startsWith(`/clubs/${myClubSlug}`)) {
 								return false;
 							}
 

@@ -47,3 +47,4 @@ class UserResponse(BaseModel):
 	role: UserRole
 	is_active: bool
 	club_id: Optional[str] = None
+	club_slug: Optional[str] = None

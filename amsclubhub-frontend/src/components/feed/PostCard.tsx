@@ -180,7 +180,7 @@ export default function PostCard({
 		<article className="p-4 border-b border-border hover:bg-muted/20 transition cursor-pointer relative">
 			<div className="flex gap-3">
 				{/* Logo/Avatar CLB */}
-				<Link href={`/clubs/${post.club_id}`}
+				<Link href={`/clubs/${post.club_slug || post.club_id}`}
 					prefetch={false}
 					className="shrink-0"
 					onClick={(e) => e.stopPropagation()}>
@@ -203,7 +203,7 @@ export default function PostCard({
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-1.5 flex-wrap text-xs">
 							<Link
-								href={`/clubs/${post.club_id}`}
+								href={`/clubs/${post.club_slug || post.club_id}`}
 								prefetch={false}
 								className="font-bold text-foreground hover:underline truncate"
 								onClick={(e) => e.stopPropagation()}

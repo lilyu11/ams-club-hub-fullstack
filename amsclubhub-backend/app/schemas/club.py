@@ -43,6 +43,7 @@ class ClubResponse(ClubBase):
 	model_config = ConfigDict(from_attributes=True)
 
 	id: str
+	slug: Optional[str] = None
 	is_active: bool
 	created_at: datetime
 	admin_id: str

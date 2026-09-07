@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
-from app.core.database import engine, Base
+from app.core.database import engine, Base, SessionLocal
 from app.core.redis import init_redis, close_redis
 from app.api.v1.auth import router as auth_router
 from app.api.v1.users import router as users_router
@@ -20,6 +20,35 @@ Base.metadata.create_all(bind=engine) # Tự động tạo các bảng còn thi�
 # create_all KHÔNG thêm cột mới vào bảng đã có sẵn → đảm bảo cột auto_reminder tồn tại (idempotent)
 with engine.begin() as conn:
 	conn.execute(sa.text("ALTER TABLE users ADD COLUMN IF NOT EXISTS auto_reminder BOOLEAN NOT NULL DEFAULT TRUE"))
+	# Cột slug (URL thân thiện/bảo mật) cho CLB + unique index (Postgres cho phép nhiều NULL trong unique)
+	conn.execute(sa.text("ALTER TABLE clubs ADD COLUMN IF NOT EXISTS slug VARCHAR(120)"))
+	conn.execute(sa.text("CREATE UNIQUE INDEX IF NOT EXISTS uq_clubs_slug ON clubs(slug)"))
+
+
+def _backfill_club_slugs():
+	# Backfill slug cho CLB chưa có slug - chạy mỗi lần boot, chỉ fill các dòng thiếu (idempotent)
+	from app.core.slugify import to_slug
+	from app.models.club import Club
+
+	db = SessionLocal()
+	try:
+		missing = db.query(Club).filter(Club.slug.is_(None)).all()
+		if not missing:
+			return
+		for club in missing:
+			base = to_slug(club.name)
+			candidate = base
+			n = 2
+			while db.query(Club.id).filter(Club.slug == candidate, Club.id != club.id).first():
+				candidate = f"{base}-{n}"
+				n += 1
+			club.slug = candidate
+		db.commit()
+	finally:
+		db.close()
+
+
+_backfill_club_slugs()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

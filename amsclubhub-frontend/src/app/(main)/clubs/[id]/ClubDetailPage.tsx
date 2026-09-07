@@ -140,7 +140,8 @@ export default function ClubDetailClient({ clubId }: ClubDetailClientProps) {
 
 			setRawClubData(rawClub);
 			setIsFollowing(!!is_following);
-			setPosts(Array.isArray(posts) ? posts : posts?.items || []);
+			const mappedPosts = Array.isArray(posts) ? posts : posts?.items || [];
+			setPosts(mappedPosts.map((p: any) => ({ ...p, club_slug: rawClub?.slug })));
 
 			const rawBanner = rawClub?.banner_url || rawClub?.banner_urls?.[0];
 			const logo = sanitizeImageUrl(rawClub?.logo_url, DEFAULT_AVATAR);

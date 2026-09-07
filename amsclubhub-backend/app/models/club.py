@@ -24,6 +24,7 @@ class Club(Base):
 	id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
 	name = Column(String(150), unique=True, nullable=False, index=True)
 	code = Column(String(20), unique=True, nullable=False, index=True)
+	slug = Column(String(120), unique=True, nullable=True, index=True)
 	contact_email = Column(String(150), unique=True, nullable=False, index=True)
 	category = Column(String(50), nullable=True)  # Nghệ thuật, Học thuật, Thể thao,...
 	description = Column(Text, nullable=True)

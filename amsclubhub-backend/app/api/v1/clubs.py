@@ -18,22 +18,37 @@ from app.schemas.campaign_post import CampaignPostResponse
 from app.core.security import verify_password
 from app.schemas.auth import UserResponse
 from app.core.cache import get_cached, set_cached, invalidate, get_version, cache_key
+from app.core.slugify import to_slug
 
 router = APIRouter(prefix="/clubs", tags=["Clubs"])
 logger = logging.getLogger(__name__)
 
-# Hàm helper tìm CLB theo UUID (id) hoặc mã định danh (code)
+# Hàm helper tìm CLB theo UUID (id), mã định danh (code), tên hoặc slug
 def get_club_by_identifier(club_id: str, db: Session) -> Club:
 	club = db.query(Club).filter(
-		or_(Club.id == club_id, Club.code == club_id, Club.name == club_id)
+		or_(Club.id == club_id, Club.code == club_id, Club.name == club_id, Club.slug == club_id)
 	).first()
 
 	if not club:
 		raise HTTPException(
 			status_code=status.HTTP_404_NOT_FOUND,
-			detail=f"Không tìm thấy Câu lạc bộ với ID hoặc mã: '{club_id}'."
+			detail=f"Không tìm thấy Câu lạc bộ với ID, mã, tên hoặc slug: '{club_id}'."
 		)
 	return club
+
+
+def unique_club_slug(db: Session, base: str, exclude_id: str | None = None) -> str:
+	# Sinh slug duy nhất: to_slug(base), nếu trùng thì thêm -2, -3...
+	candidate = to_slug(base)
+	n = 2
+	while True:
+		q = db.query(Club.id).filter(Club.slug == candidate)
+		if exclude_id:
+			q = q.filter(Club.id != exclude_id)
+		if not q.first():
+			return candidate
+		candidate = f"{to_slug(base)}-{n}"
+		n += 1
 
 @router.post("/", response_model=ClubResponse, status_code=status.HTTP_201_CREATED)
 def create_club(
@@ -58,9 +73,12 @@ def create_club(
 
  	# Tạo CLB mới và gán admin_id = ID của user đang đăng nhập
 	new_club = Club(
- 	**club_in.model_dump(),
-	admin_id=current_user.id
+		**club_in.model_dump(),
+		admin_id=current_user.id
 	)
+
+	# Sinh slug duy nhất từ tên CLB
+	new_club.slug = unique_club_slug(db, new_club.name)
 
 	db.add(new_club)
 	db.commit()
@@ -181,6 +199,11 @@ def update_club(
 
 	# Cập nhật các trường dữ liệu được truyền lên
 	update_data = club_in.model_dump(exclude_unset=True)
+
+	# Nếu đổi tên thì sinh lại slug duy nhất
+	if "name" in update_data:
+		club.slug = unique_club_slug(db, update_data["name"], exclude_id=club.id)
+
 	for field, value in update_data.items():
 		setattr(club, field, value)
 

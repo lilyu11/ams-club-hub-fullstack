@@ -31,7 +31,7 @@ function ClubCard({ club }: { club: Club }) {
 
 	return (
 		<Link
-			href={`/clubs/${club.id}`}
+			href={`/clubs/${club.slug || club.id}`}
 			prefetch={false}
 			className="group relative bg-white dark:bg-zinc-900/70 hover:bg-slate-50 dark:hover:bg-zinc-800/80 border border-slate-200/80 dark:border-zinc-800/80 hover:border-slate-300 dark:hover:border-zinc-700/80 rounded-2xl p-3.5 transition-all duration-200 flex flex-col shadow-sm hover:shadow-md"
 		>

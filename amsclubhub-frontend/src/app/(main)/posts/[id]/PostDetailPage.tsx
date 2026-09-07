@@ -47,7 +47,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 	const router = useRouter();
 
 	const [post, setPost] = useState<PostDetail | null>(null);
-	const [clubInfo, setClubInfo] = useState<{ name?: string; logo?: string } | null>(null);
+	const [clubInfo, setClubInfo] = useState<{ name?: string; logo?: string; slug?: string } | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [isFollowing, setIsFollowing] = useState(false);
 	const [isFollowLoading, setIsFollowLoading] = useState(false);
@@ -90,6 +90,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 						setClubInfo({
 							name: cData.name,
 							logo: cData.logo_url || cData.banner_url,
+							slug: cData.slug,
 						});
 					}
 
@@ -289,7 +290,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 				{clubInfo ? (
 					<>
 						<div className="flex items-center gap-3">
-							<Link href={`/clubs/${clubId}`} prefetch={false} className="shrink-0">
+							<Link href={`/clubs/${clubInfo.slug || clubId}`} prefetch={false} className="shrink-0">
 								{clubLogo ? (
 									<img
 										src={getFullImageUrl(clubLogo)}
@@ -306,7 +307,7 @@ export default function PostDetailPage({ postId }: PostDetailClientProps) {
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-1.5 flex-wrap text-xs">
 									<Link
-										href={`/clubs/${clubId}`}
+										href={`/clubs/${clubInfo.slug || clubId}`}
 										prefetch={false}
 										className="font-bold text-foreground hover:underline truncate"
 									>

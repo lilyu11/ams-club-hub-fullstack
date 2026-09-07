@@ -65,14 +65,14 @@ export default function HomePage() {
 				return postTime >= sevenDaysAgo;
 			});
 
-			// Map tên & logo CLB
-			const clubsMap: Record<number, { name: string; logo?: string }> = {};
+			// Map tên, logo & slug CLB
+			const clubsMap: Record<number, { name: string; logo?: string; slug?: string }> = {};
 			if (clubsRes.status === 'fulfilled') {
 			const rawClubs = Array.isArray(clubsRes.value.data)
 				? clubsRes.value.data
 				: clubsRes.value.data?.items || clubsRes.value.data?.data || [];
 			rawClubs.forEach((c: any) => {
-				clubsMap[c.id] = { name: c.name, logo: c.logo_url };
+				clubsMap[c.id] = { name: c.name, logo: c.logo_url, slug: c.slug };
 			});
 			}
 
@@ -91,6 +91,7 @@ export default function HomePage() {
 			...p,
 			club_name: p.club?.name || clubsMap[p.club_id]?.name || 'AmsClubHub',
 			club_logo: p.club?.logo_url || clubsMap[p.club_id]?.logo,
+			club_slug: p.club?.slug || clubsMap[p.club_id]?.slug,
 			action_url: p.action_url || null,
 			}));
 

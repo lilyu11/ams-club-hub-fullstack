@@ -3,12 +3,14 @@ export interface UserProfile {
 	email: string;
 	role: 'super_admin' | 'club_admin' | 'student';
 	club_id?: number | string;
+	club_slug?: string;
 }
 
 export interface Club {
   id: string | number;
   name: string;
   code: string;
+  slug?: string;
   category?: string;
   signature?: string;
   description?: string;
@@ -28,6 +30,7 @@ export interface PostData {
   club_id?: number | string;
   club_name?: string;
   club_logo?: string;
+  club_slug?: string;
   created_at: string;
   action_url?: string | null;
   deadline?:string;
@@ -40,6 +43,7 @@ export interface PostData {
     name?: string;
     logo_url?: string;
     category?:string | null;
+    slug?: string;
   };
 }
 

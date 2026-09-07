@@ -29,5 +29,6 @@ def read_current_user(
 		student_id=current_user.student_id,
 		role=current_user.role,
 		is_active=current_user.is_active,
-		club_id=managed_club_id
+		club_id=managed_club_id,
+		club_slug=club.slug if club else None
 	)

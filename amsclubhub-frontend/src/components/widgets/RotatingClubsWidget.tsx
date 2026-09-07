@@ -9,6 +9,7 @@ import { getFullImageUrl } from '@/lib/utils';
 interface ClubItem {
 	id: number;
 	name: string;
+	slug?: string;  // Slug CLB, dùng trong URL
 	category?: string;
 	logo_url?: string;
 	avatar_url?: string;
@@ -107,7 +108,7 @@ export default function RotatingClubsWidget() {
 								</div>
 
 								<Link
-									href={`/clubs/${club.id}`}
+									href={`/clubs/${club.slug || club.id}`}
 									prefetch={false}
 									className="text-xs bg-primary text-primary-foreground font-semibold px-3 py-1.5 rounded-full hover:opacity-90 transition shrink-0 inline-flex items-center justify-center"
 								>
