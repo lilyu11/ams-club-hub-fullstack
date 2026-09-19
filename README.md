@@ -31,7 +31,7 @@
 - **Redis** (Caching / auxiliary)
 
 ### Email / Notifications 
-- **Brevo SMTP API** (Sending reminder emails)
+- **Brevo SMTP API** (Sending OTP and reminder emails)
 - **Fallback SMTP** (If Brevo is not configured)
 
 ### Frontend 
