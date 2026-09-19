@@ -39,6 +39,18 @@ dist/
 uploads/*
 !uploads/**/.gitkeep
 
+# Backend uploads (local dev media) — don't commit user/test images
+# (keep default-logo/banner which are tracked)
+amsclubhub-backend/uploads/images/*.webp
+amsclubhub-backend/uploads/images/*.png
+amsclubhub-backend/uploads/images/*.jpg
+!amsclubhub-backend/uploads/images/default-logo.jpg
+!amsclubhub-backend/uploads/images/default-banner.jpg
+
+# Beta admin credentials file (contains emails/passwords)
+amsclubhub-backend/scripts/beta_clubs.json
+!amsclubhub-backend/scripts/beta_clubs.json.example
+
 # ==========================================
 # 5. LOGS & DOCKER
 # ==========================================
